@@ -1,0 +1,135 @@
+package domain
+
+import (
+	"fmt"
+	"regexp"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	loginRegex = `^[a-zA-Z0-9]{3,20}$`
+)
+
+type authImpl struct {
+	UUID         string
+	Login        string
+	Email        string
+	Password     string
+	PasswordHash []byte
+}
+
+type Auth interface {
+	ValidateEmail() error
+	ValidateLogin() error
+	ValidatePassword() error
+	HashingPassword() error
+	ApprovePassword() error
+
+	SetUUID(uuid string)
+	SetLogin(login string)
+	SetEmail(email string)
+	SetPassword(password string)
+	SetPasswordHash(passwordHash []byte)
+
+	GetUUID() string
+	GetLogin() string
+	GetEmail() string
+	GetPassword() string
+	GetPasswordHash() []byte
+}
+
+func NewUser() Auth {
+	return &authImpl{}
+}
+
+// Validator
+
+func (a *authImpl) ValidateEmail() error {
+	if a.Email == "" {
+		return fmt.Errorf("FAIL: empty email")
+	}
+	re := regexp.MustCompile(emailRegex)
+	if !re.MatchString(a.Email) {
+		return fmt.Errorf("FAIL: invalid email format (text@mail.domen)")
+	}
+	return nil
+}
+
+func (a *authImpl) ValidateLogin() error {
+	if a.Login == "" {
+		return fmt.Errorf("FAIL: empty login")
+	}
+	re := regexp.MustCompile(loginRegex)
+	if !re.MatchString(a.Login) {
+		return fmt.Errorf("FAIL: invalid login format (only words and numeric, large 3-20 symbols)")
+	}
+	return nil
+}
+
+func (a *authImpl) ValidatePassword() error {
+	if a.Login == "" {
+		return fmt.Errorf("FAIL: empty password")
+	}
+	return nil
+}
+
+func (a *authImpl) HashingPassword() error {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(a.Password), 10)
+	if err != nil {
+		return fmt.Errorf("FAIL: error by crypted password")
+	}
+	a.PasswordHash = passwordHash
+	return nil
+}
+
+func (a *authImpl) ApprovePassword() error {
+	err := bcrypt.CompareHashAndPassword(a.PasswordHash, []byte(a.Password))
+	if err != nil {
+		return fmt.Errorf("FAIL: invalid password")
+	}
+	return nil
+}
+
+// Setters/Getters
+
+func (a *authImpl) SetUUID(uuid string) {
+	a.UUID = uuid
+}
+
+func (a *authImpl) SetLogin(login string) {
+	a.Login = login
+}
+
+func (a *authImpl) SetEmail(email string) {
+	a.Email = email
+}
+
+func (a *authImpl) SetPassword(password string) {
+	a.Password = password
+}
+
+func (a *authImpl) SetPasswordHash(passwordHash []byte) {
+	a.PasswordHash = passwordHash
+}
+
+func (a *authImpl) GetUUID() string {
+	return a.UUID
+}
+
+func (a *authImpl) GetLogin() string {
+	return a.Login
+}
+
+func (a *authImpl) GetEmail() string {
+	return a.Email
+}
+
+func (a *authImpl) GetPassword() string {
+	return a.Password
+}
+
+func (a *authImpl) GetPasswordHash() []byte {
+	return a.PasswordHash
+}

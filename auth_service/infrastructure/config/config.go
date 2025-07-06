@@ -17,7 +17,8 @@ type PgCfg struct {
 }
 
 type JwtCfg struct {
-	JWTKey string `env:"JWT_KEY"`
+	JWTKey        string `env:"JWT_SECRET_KEY"`
+	TokenLifetime int    `env:"TOKEN_TIME_LIFE"`
 }
 
 var (

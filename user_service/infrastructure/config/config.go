@@ -16,14 +16,9 @@ type PgCfg struct {
 	Password string `env:"PG_PASSWORD"`
 }
 
-type JwtCfg struct {
-	JWTKey string `env:"JWT_KEY"`
-}
-
 var (
-	jwtConf *JwtCfg
-	pgConf  *PgCfg
-	once    sync.Once
+	pgConf *PgCfg
+	once   sync.Once
 )
 
 func parsConf() {
@@ -37,12 +32,6 @@ func parsConf() {
 		log.Println("Warning: error reading PostgreSQL config: ", err)
 		cleanenv.GetDescription(pgConf, nil)
 	}
-
-	jwtConf = &JwtCfg{}
-	if err = cleanenv.ReadConfig(".env", jwtConf); err != nil {
-		log.Println("Warning: error reading JWT config: ", err)
-		cleanenv.GetDescription(jwtConf, nil)
-	}
 }
 
 func GetPgEnv() *PgCfg {
@@ -50,11 +39,4 @@ func GetPgEnv() *PgCfg {
 		parsConf()
 	})
 	return pgConf
-}
-
-func GetJwtEnv() *JwtCfg {
-	once.Do(func() {
-		parsConf()
-	})
-	return jwtConf
 }

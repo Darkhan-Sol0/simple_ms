@@ -11,6 +11,9 @@ PACKAGE =	github.com/gin-gonic/gin\
 					github.com/ilyakaznacheev/cleanenv\
 					github.com/joho/godotenv\
 					github.com/golang-jwt/jwt/v5\
+					google.golang.org/grpc\
+					google.golang.org/protobuf/cmd/protoc-gen-go\
+					google.golang.org/grpc/cmd/protoc-gen-go-grpc\
 
 .PHONY: build run clean mod get
 
