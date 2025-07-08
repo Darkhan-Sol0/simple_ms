@@ -1,4 +1,4 @@
-NAME = gateway
+NAME = user_service
 
 SOURCE = cmd/user_app.go
 

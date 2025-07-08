@@ -1,7 +1,7 @@
 package web
 
 import (
-	"gateway/internal/service"
+	"auth_service/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,5 +17,11 @@ func NewHandler(service service.AuthService) *Handler {
 }
 
 func (h *Handler) RegistrationHandlers(r *gin.Engine) {
+	r.GET("/", h.Main)
 
+	r.GET("/err", h.Erro)
+	r.GET("/suc", h.Succes)
+
+	r.POST("/sign_in", h.Registaration)
+	r.POST("/sign_up", h.Authorization)
 }

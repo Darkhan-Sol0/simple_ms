@@ -1,4 +1,4 @@
-NAME = gateway
+NAME = auth_service
 
 SOURCE = cmd/auth_app.go
 

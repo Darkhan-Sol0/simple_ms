@@ -1,18 +1,23 @@
 package jwt
 
 import (
-	"gateway/infrastructure/config"
+	"auth_service/infrastructure/config"
+	"auth_service/internal/dto"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type Claims struct {
+	UUID  string
+	Login string
 	jwt.RegisteredClaims
 }
 
-func GenerateToken() (string, error) {
+func GenerateToken(user dto.DtoUserToToken) (string, error) {
 	claims := &Claims{
+		UUID:  user.UUID,
+		Login: user.Login,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(config.GetJwtEnv().TokenLifetime) * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

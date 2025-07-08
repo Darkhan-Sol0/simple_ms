@@ -10,12 +10,14 @@ import (
 const (
 	emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	loginRegex = `^[a-zA-Z0-9]{3,20}$`
+	phoneRegex = `^\+[0-9]{11}$`
 )
 
 type authImpl struct {
 	UUID         string
 	Login        string
 	Email        string
+	Phone        string
 	Password     string
 	PasswordHash []byte
 }
@@ -23,6 +25,7 @@ type authImpl struct {
 type Auth interface {
 	ValidateEmail() error
 	ValidateLogin() error
+	ValidatePhone() error
 	ValidatePassword() error
 	HashingPassword() error
 	ApprovePassword() error
@@ -30,12 +33,14 @@ type Auth interface {
 	SetUUID(uuid string)
 	SetLogin(login string)
 	SetEmail(email string)
+	SetPhone(phone string)
 	SetPassword(password string)
 	SetPasswordHash(passwordHash []byte)
 
 	GetUUID() string
 	GetLogin() string
 	GetEmail() string
+	GetPhone() string
 	GetPassword() string
 	GetPasswordHash() []byte
 }
@@ -57,6 +62,17 @@ func (a *authImpl) ValidateEmail() error {
 	return nil
 }
 
+func (a *authImpl) ValidatePhone() error {
+	if a.Phone == "" {
+		return fmt.Errorf("FAIL: empty phone")
+	}
+	re := regexp.MustCompile(phoneRegex)
+	if !re.MatchString(a.Phone) {
+		return fmt.Errorf("FAIL: invalid phone format (+xxxxxxxxxxx)")
+	}
+	return nil
+}
+
 func (a *authImpl) ValidateLogin() error {
 	if a.Login == "" {
 		return fmt.Errorf("FAIL: empty login")
@@ -69,7 +85,7 @@ func (a *authImpl) ValidateLogin() error {
 }
 
 func (a *authImpl) ValidatePassword() error {
-	if a.Login == "" {
+	if a.Password == "" {
 		return fmt.Errorf("FAIL: empty password")
 	}
 	return nil
@@ -81,6 +97,7 @@ func (a *authImpl) HashingPassword() error {
 		return fmt.Errorf("FAIL: error by crypted password")
 	}
 	a.PasswordHash = passwordHash
+	a.Password = ""
 	return nil
 }
 
@@ -106,6 +123,10 @@ func (a *authImpl) SetEmail(email string) {
 	a.Email = email
 }
 
+func (a *authImpl) SetPhone(phone string) {
+	a.Phone = phone
+}
+
 func (a *authImpl) SetPassword(password string) {
 	a.Password = password
 }
@@ -124,6 +145,10 @@ func (a *authImpl) GetLogin() string {
 
 func (a *authImpl) GetEmail() string {
 	return a.Email
+}
+
+func (a *authImpl) GetPhone() string {
+	return a.Phone
 }
 
 func (a *authImpl) GetPassword() string {
