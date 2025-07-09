@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -15,7 +16,15 @@ func (h *Handler) MainHandler(ctx *gin.Context) {
 func (h *Handler) Test(ctx *gin.Context) {
 	res, err := http.Get(fmt.Sprintf("%s/", h.Services.Auth_service))
 	if err != nil {
-		sendMessage(ctx, NewResult(res, http.StatusBadRequest, err))
+		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
 	}
-	sendMessage(ctx, NewResult(res.Body, http.StatusCreated, nil))
+	var dec struct {
+		Data   any `json:"data"`
+		Status int `json:"status"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&dec); err != nil {
+		sendMessage(ctx, NewResult(nil, http.StatusInternalServerError, err))
+		return
+	}
+	sendMessage(ctx, NewResult(dec, http.StatusOK, nil))
 }
