@@ -17,5 +17,5 @@ func (h *Handler) Test(ctx *gin.Context) {
 	if err != nil {
 		sendMessage(ctx, NewResult(res, http.StatusBadRequest, err))
 	}
-	sendMessage(ctx, NewResult(res, http.StatusCreated, nil))
+	sendMessage(ctx, NewResult(res.Body, http.StatusCreated, nil))
 }

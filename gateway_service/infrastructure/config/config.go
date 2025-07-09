@@ -24,7 +24,7 @@ func parsServiceConf() *Services {
 		log.Println("Warning: error loading .env file: ", err)
 		return nil
 	}
-	services := &Services{}
+	services = &Services{}
 	if err := cleanenv.ReadConfig(".env", services); err != nil {
 		log.Println("Warning: error reading Services config: ", err)
 		cleanenv.GetDescription(services, nil)

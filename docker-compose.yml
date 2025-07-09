@@ -25,15 +25,18 @@ services:
     container_name: auth_db
     restart: always
     ports:
-      - "15432:5432"
-    env_file:
-      - ./auth_service/.env
+      - "5430:5432"
+    # env_file:
+    #   - ./auth_service/.env
     environment:
-      POSTGRES_USER: ${PG_USERNAME}
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-      POSTGRES_DB: ${PG_DATABASE}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth_db
+      # POSTGRES_USER: ${PG_USERNAME}
+      # POSTGRES_PASSWORD: ${PG_PASSWORD}
+      # POSTGRES_DB: ${PG_DATABASE}
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data 
+      - ./auth_postgres_data:/var/lib/postgresql/data 
 
   user_service:
     restart: always
@@ -43,23 +46,28 @@ services:
     ports:
       - "8082:8282"
     depends_on: 
-      - auth_postgres
+      - user_postgres
   
   user_postgres:
     image: postgres:17-alpine
     container_name: user_db
     restart: always
     ports:
-      - "25432:5432"
-    env_file:
-      - ./user_service/.env
+      - "5431:5432"
+    # env_file:
+    #   - ./user_service/.env
     environment:
-      POSTGRES_USER: ${PG_USERNAME}
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-      POSTGRES_DB: ${PG_DATABASE} 
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: user_db
+      # POSTGRES_USER: ${PG_USERNAME}
+      # POSTGRES_PASSWORD: ${PG_PASSWORD}
+      # POSTGRES_DB: ${PG_DATABASE} 
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data 
+      - ./user_postgres_data:/var/lib/postgresql/data 
 
 volumes:
   auth_postgres_data:
+    driver: local
   user_postgres_data:
+    driver: local
