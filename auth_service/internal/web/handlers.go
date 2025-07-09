@@ -9,71 +9,41 @@ import (
 )
 
 func (h *Handler) Main(ctx *gin.Context) {
-	sendMessage(ctx, Result{
-		status: http.StatusOK,
-		err:    nil,
-		data:   "Hello, World!",
-	})
+	sendMessage(ctx, NewResult("Hello, World!", http.StatusOK, nil))
 }
 
 func (h *Handler) Erro(ctx *gin.Context) {
-	sendMessage(ctx, Result{
-		status: http.StatusBadRequest,
-		err:    fmt.Errorf("this bad reques"),
-		data:   "Test!",
-	})
+	sendMessage(ctx, NewResult("Test!", http.StatusBadRequest, fmt.Errorf("this bad reques")))
 }
 
 func (h *Handler) Succes(ctx *gin.Context) {
-	sendMessage(ctx, Result{
-		status: http.StatusOK,
-		err:    nil,
-		data:   "This succes request!",
-	})
+	sendMessage(ctx, NewResult("This succes request!", http.StatusOK, nil))
 }
 
 func (h *Handler) Registaration(ctx *gin.Context) {
 	var regUser dto.DtoRegUser
 	if err := ctx.ShouldBindJSON(&regUser); err != nil {
-		sendMessage(ctx, Result{
-			status: http.StatusBadRequest,
-			data:   "invalid request body",
-			err:    err})
+		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
 		return
 	}
 	uuid, err := h.Service.CreateUser(ctx, regUser)
 	if err != nil {
-		sendMessage(ctx, Result{
-			status: http.StatusBadRequest,
-			data:   "invalid create user",
-			err:    err})
+		sendMessage(ctx, NewResult("invalid create user", http.StatusBadRequest, err))
 		return
 	}
-	sendMessage(ctx, Result{
-		status: http.StatusCreated,
-		data:   uuid,
-		err:    nil})
+	sendMessage(ctx, NewResult(uuid, http.StatusCreated, nil))
 }
 
 func (h *Handler) Authorization(ctx *gin.Context) {
 	var authUser dto.DtoAuthUserLogin
 	if err := ctx.ShouldBindJSON(&authUser); err != nil {
-		sendMessage(ctx, Result{
-			status: http.StatusBadRequest,
-			data:   "invalid request body",
-			err:    err})
+		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
 		return
 	}
 	token, err := h.Service.AuthUserByLogin(ctx, authUser)
 	if err != nil {
-		sendMessage(ctx, Result{
-			status: http.StatusBadRequest,
-			data:   "invalid auth user",
-			err:    err})
+		sendMessage(ctx, NewResult("invalid auth user", http.StatusBadRequest, err))
 		return
 	}
-	sendMessage(ctx, Result{
-		status: http.StatusCreated,
-		data:   token,
-		err:    nil})
+	sendMessage(ctx, NewResult(token, http.StatusCreated, nil))
 }

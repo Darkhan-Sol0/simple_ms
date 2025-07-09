@@ -22,6 +22,6 @@ func (h *Handler) RegistrationHandlers(r *gin.Engine) {
 	r.GET("/err", h.Erro)
 	r.GET("/suc", h.Succes)
 
-	r.POST("/sign_in", h.Registaration)
-	r.POST("/sign_up", h.Authorization)
+	r.POST("/sign_up", h.Registaration)
+	r.POST("/sign_in", h.Authorization)
 }

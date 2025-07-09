@@ -53,7 +53,8 @@ func NewUser() Auth {
 
 func (a *authImpl) ValidateEmail() error {
 	if a.Email == "" {
-		return fmt.Errorf("FAIL: empty email")
+		// return fmt.Errorf("FAIL: empty email")
+		return nil
 	}
 	re := regexp.MustCompile(emailRegex)
 	if !re.MatchString(a.Email) {
@@ -64,7 +65,8 @@ func (a *authImpl) ValidateEmail() error {
 
 func (a *authImpl) ValidatePhone() error {
 	if a.Phone == "" {
-		return fmt.Errorf("FAIL: empty phone")
+		// return fmt.Errorf("FAIL: empty phone")
+		return nil
 	}
 	re := regexp.MustCompile(phoneRegex)
 	if !re.MatchString(a.Phone) {

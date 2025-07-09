@@ -3,10 +3,10 @@ package database
 import (
 	"context"
 	"fmt"
-	"gateway/infrastructure/config"
 	"log"
+	"user_service/infrastructure/config"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
