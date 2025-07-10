@@ -3,7 +3,7 @@ package web
 import "github.com/gin-gonic/gin"
 
 type Result struct {
-	data   any
+	data   interface{}
 	err    error
 	status int
 }
@@ -20,7 +20,7 @@ func sendMessage(ctx *gin.Context, res Result) {
 	if res.err != nil {
 		ctx.JSON(res.status, gin.H{
 			"status":  res.status,
-			"error":   res.data,
+			"error":   res.err,
 			"details": res.err.Error(),
 		})
 	} else {

@@ -18,7 +18,8 @@ func NewHandler() *Handler {
 
 func (h *Handler) RegistrateHandler(r *gin.Engine) {
 	r.GET("/", h.MainHandler)
-	r.GET("/auth/test", h.Test)
+	r.GET("/auth/test/s", h.Test)
+	r.GET("/auth/test/b", h.Test_bad)
 	r.POST("/auth/sign_up", h.Registration)
 	r.POST("/auth/sign_in", h.Authorization)
 }

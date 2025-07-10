@@ -14,17 +14,37 @@ func (h *Handler) MainHandler(ctx *gin.Context) {
 }
 
 func (h *Handler) Test(ctx *gin.Context) {
-	res, err := http.Get(fmt.Sprintf("%s/", h.Services.Auth_service))
+	res, err := http.Get(fmt.Sprintf("%s/suc", h.Services.Auth_service))
 	if err != nil {
 		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
 	}
-	var dec struct {
-		Data   any `json:"data"`
-		Status int `json:"status"`
-	}
-	if err := json.NewDecoder(res.Body).Decode(&dec); err != nil {
-		sendMessage(ctx, NewResult(nil, http.StatusInternalServerError, err))
+	defer res.Body.Close()
+	var resp Respones
+	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+		sendMessage(ctx, NewResult(resp.Data, resp.Status, err))
 		return
 	}
-	sendMessage(ctx, NewResult(dec, http.StatusOK, nil))
+	if resp.Err != nil {
+		sendMessage(ctx, NewResult(resp.Details, resp.Status, resp.Err))
+		return
+	}
+	sendMessage(ctx, NewResult(resp.Data, resp.Status, nil))
+}
+
+func (h *Handler) Test_bad(ctx *gin.Context) {
+	res, err := http.Get(fmt.Sprintf("%s/err", h.Services.Auth_service))
+	if err != nil {
+		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
+	}
+	defer res.Body.Close()
+	var resp Respones
+	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
+		return
+	}
+	if resp.Err != nil {
+		sendMessage(ctx, NewResult(resp.Details, resp.Status, resp.Err))
+		return
+	}
+	sendMessage(ctx, NewResult(resp.Data, resp.Status, nil))
 }

@@ -13,11 +13,11 @@ func (h *Handler) Main(ctx *gin.Context) {
 }
 
 func (h *Handler) Erro(ctx *gin.Context) {
-	sendMessage(ctx, NewResult("Test!", http.StatusBadRequest, fmt.Errorf("this bad reques")))
+	sendMessage(ctx, NewResult(nil, http.StatusBadRequest, fmt.Errorf("this bad request")))
 }
 
 func (h *Handler) Succes(ctx *gin.Context) {
-	sendMessage(ctx, NewResult("This succes request!", http.StatusOK, nil))
+	sendMessage(ctx, NewResult("This success request!", http.StatusOK, nil))
 }
 
 func (h *Handler) Registaration(ctx *gin.Context) {
