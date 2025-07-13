@@ -1,42 +1,51 @@
 package dto
 
+type DtoAuthUser struct {
+	Identifier string `json:"identifier"`
+	Password   string `json:"password"`
+}
+
 type DtoAuthUserLogin struct {
-	Login    string
-	Password string
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }
 
 type DtoAuthUserEmail struct {
-	Email    string
-	Password string
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type DtoAuthUserPhone struct {
-	Phone    string
-	Password string
+	Phone    string `json:"phone"`
+	Password string `json:"password"`
 }
 
-type DtoRegUser struct {
-	Login    string
-	Email    string
-	Phone    string
-	Password string
+type DtoRegUserFwomWeb struct {
+	Login    string `json:"login"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Password string `json:"password"`
 }
 
-type DtoRegUserDB struct {
-	UUID         string
-	Login        string
-	Email        string
-	Phone        string
-	PasswordHash []byte
+type DtoRegUserToDb struct {
+	UUID         string `json:"uuid"`
+	Login        string `json:"login"`
+	Email        string `json:"email"`
+	Phone        string `json:"phone"`
+	PasswordHash []byte `json:"passwordhash"`
 }
 
-type DtoUserFromDB struct {
-	UUID         string
-	Login        string
-	PasswordHash []byte
+type DtoUserFromDbToWeb struct {
+	UUID         string `json:"uuid"`
+	Login        string `json:"login"`
+	PasswordHash []byte `json:"passwordhash"`
 }
 
 type DtoUserToToken struct {
-	UUID  string
-	Login string
+	UUID  string `json:"uuid"`
+	Login string `json:"login"`
+}
+
+type DtoTokenChecker struct {
+	Token string `json:"token"`
 }

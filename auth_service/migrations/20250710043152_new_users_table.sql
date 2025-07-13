@@ -5,8 +5,8 @@ CREATE TABLE users (
     uuid VARCHAR(100),
     login VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE,
-    phone VARCHAR(100) UNIQUE
+    email VARCHAR(100),
+    phone VARCHAR(100)
 );
 -- +goose StatementEnd
 

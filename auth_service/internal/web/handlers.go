@@ -21,7 +21,7 @@ func (h *Handler) Succes(ctx *gin.Context) {
 }
 
 func (h *Handler) Registaration(ctx *gin.Context) {
-	var regUser dto.DtoRegUser
+	var regUser dto.DtoRegUserFwomWeb
 	if err := ctx.ShouldBindJSON(&regUser); err != nil {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
 		return
@@ -35,15 +35,29 @@ func (h *Handler) Registaration(ctx *gin.Context) {
 }
 
 func (h *Handler) Authorization(ctx *gin.Context) {
-	var authUser dto.DtoAuthUserLogin
+	var authUser dto.DtoAuthUser
 	if err := ctx.ShouldBindJSON(&authUser); err != nil {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
 		return
 	}
-	token, err := h.Service.AuthUserByLogin(ctx, authUser)
+	token, err := h.Service.AuthUser(ctx, authUser)
 	if err != nil {
 		sendMessage(ctx, NewResult("invalid auth user", http.StatusBadRequest, err))
 		return
 	}
 	sendMessage(ctx, NewResult(token, http.StatusCreated, nil))
+}
+
+func (h *Handler) CheckAuthorization(ctx *gin.Context) {
+	var token string
+	if err := ctx.ShouldBindJSON(&token); err != nil {
+		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
+		return
+	}
+	res, err := h.Service.TokenChecker(ctx, token)
+	if err != nil {
+		sendMessage(ctx, NewResult("invalid request body", http.StatusUnauthorized, err))
+		return
+	}
+	sendMessage(ctx, NewResult(res, http.StatusOK, nil))
 }

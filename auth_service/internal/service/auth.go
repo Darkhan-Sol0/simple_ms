@@ -6,6 +6,8 @@ import (
 	"auth_service/internal/dto"
 	"auth_service/pkg/jwt"
 	"auth_service/pkg/uuid"
+	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,8 +17,10 @@ type authServiceImpl struct {
 }
 
 type AuthService interface {
-	CreateUser(ctx *gin.Context, userReg dto.DtoRegUser) (string, error)
+	CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFwomWeb) (string, error)
+	AuthUser(ctx *gin.Context, userAuth dto.DtoAuthUser) (string, error)
 	AuthUserByLogin(ctx *gin.Context, userAuth dto.DtoAuthUserLogin) (string, error)
+	TokenChecker(ctx *gin.Context, token string) (bool, error)
 }
 
 func NewService(store datasource.Storage) AuthService {
@@ -25,7 +29,7 @@ func NewService(store datasource.Storage) AuthService {
 	}
 }
 
-func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUser) (string, error) {
+func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFwomWeb) (string, error) {
 	user := domain.NewUser()
 	user.SetUUID(uuid.GenerateUUID())
 	user.SetLogin(userReg.Login)
@@ -49,7 +53,7 @@ func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUser) (
 		return "", err
 	}
 
-	userOut := dto.DtoRegUserDB{
+	userOut := dto.DtoRegUserToDb{
 		UUID:         user.GetUUID(),
 		Login:        user.GetLogin(),
 		Email:        user.GetEmail(),
@@ -63,6 +67,29 @@ func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUser) (
 	}
 
 	return uuid, nil
+}
+
+func (a *authServiceImpl) AuthUser(ctx *gin.Context, userAuth dto.DtoAuthUser) (token string, err error) {
+	log.Println(userAuth)
+	if isEmail(userAuth.Identifier) {
+		user := dto.DtoAuthUserEmail{Email: userAuth.Identifier, Password: userAuth.Password}
+		if token, err = a.AuthUserByEmail(ctx, user); err != nil {
+			return "", err
+		}
+	} else if isPhone(userAuth.Identifier) {
+		user := dto.DtoAuthUserPhone{Phone: userAuth.Identifier, Password: userAuth.Password}
+		if token, err = a.AuthUserByPhone(ctx, user); err != nil {
+			return "", err
+		}
+	} else if isLogin(userAuth.Identifier) {
+		user := dto.DtoAuthUserLogin{Login: userAuth.Identifier, Password: userAuth.Password}
+		if token, err = a.AuthUserByLogin(ctx, user); err != nil {
+			return "", err
+		}
+	} else {
+		return "", fmt.Errorf("invalid identifier")
+	}
+	return token, nil
 }
 
 func (a *authServiceImpl) AuthUserByLogin(ctx *gin.Context, userAuth dto.DtoAuthUserLogin) (string, error) {
@@ -92,4 +119,78 @@ func (a *authServiceImpl) AuthUserByLogin(ctx *gin.Context, userAuth dto.DtoAuth
 		return "", err
 	}
 	return token, nil
+}
+
+func (a *authServiceImpl) AuthUserByEmail(ctx *gin.Context, userAuth dto.DtoAuthUserEmail) (string, error) {
+	user := domain.NewUser()
+	user.SetEmail(userAuth.Email)
+	if err := user.ValidateEmail(); err != nil {
+		return "", err
+	}
+	user.SetPassword(userAuth.Password)
+	if err := user.ValidatePassword(); err != nil {
+		return "", err
+	}
+	userIn, err := a.Storage.GetUserByEmail(ctx, userAuth.Email)
+	if err != nil {
+		return "", err
+	}
+	user.SetPasswordHash(userIn.PasswordHash)
+	if err := user.ApprovePassword(); err != nil {
+		return "", err
+	}
+	userOut := dto.DtoUserToToken{
+		UUID:  userIn.UUID,
+		Login: userIn.Login,
+	}
+	token, err := jwt.GenerateToken(userOut)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (a *authServiceImpl) AuthUserByPhone(ctx *gin.Context, userAuth dto.DtoAuthUserPhone) (string, error) {
+	user := domain.NewUser()
+	user.SetPhone(userAuth.Phone)
+	if err := user.ValidatePhone(); err != nil {
+		return "", err
+	}
+	user.SetPassword(userAuth.Password)
+	if err := user.ValidatePassword(); err != nil {
+		return "", err
+	}
+	userIn, err := a.Storage.GetUserByPhone(ctx, userAuth.Phone)
+	if err != nil {
+		return "", err
+	}
+	user.SetPasswordHash(userIn.PasswordHash)
+	if err := user.ApprovePassword(); err != nil {
+		return "", err
+	}
+	userOut := dto.DtoUserToToken{
+		UUID:  userIn.UUID,
+		Login: userIn.Login,
+	}
+	token, err := jwt.GenerateToken(userOut)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (a *authServiceImpl) TokenChecker(ctx *gin.Context, token string) (bool, error) {
+	claim, err := jwt.ParseToken(token)
+	if err != nil {
+		return false, err
+	}
+	user, err := a.Storage.GetUserByLogin(ctx, claim.Login)
+	if err != nil {
+		return false, err
+	}
+
+	if user.UUID != claim.UUID {
+		return false, fmt.Errorf("invalid token")
+	}
+	return true, nil
 }

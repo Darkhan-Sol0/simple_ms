@@ -9,8 +9,10 @@ import (
 )
 
 type Storage interface {
-	CreateUser(ctx *gin.Context, user dto.DtoRegUserDB) (string, error)
-	GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDB, error)
+	CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (string, error)
+	GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDbToWeb, error)
+	GetUserByEmail(ctx *gin.Context, email string) (dto.DtoUserFromDbToWeb, error)
+	GetUserByPhone(ctx *gin.Context, phone string) (dto.DtoUserFromDbToWeb, error)
 }
 
 type Repository struct {
@@ -23,7 +25,7 @@ func NewRepository(client database.Client) Storage {
 	}
 }
 
-func (r *Repository) CreateUser(ctx *gin.Context, user dto.DtoRegUserDB) (string, error) {
+func (r *Repository) CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (string, error) {
 	query := `INSERT INTO users (
 		uuid, 
 		login, 
@@ -39,12 +41,32 @@ func (r *Repository) CreateUser(ctx *gin.Context, user dto.DtoRegUserDB) (string
 	return uuid, nil
 }
 
-func (r *Repository) GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDB, error) {
+func (r *Repository) GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDbToWeb, error) {
 	guery := `SELECT uuid, login, password FROM users WHERE login = $1`
-	var user dto.DtoUserFromDB
+	var user dto.DtoUserFromDbToWeb
 	row := r.Client.QueryRow(ctx, guery, login)
 	if err := row.Scan(&user.UUID, &user.Login, &user.PasswordHash); err != nil {
-		return dto.DtoUserFromDB{}, fmt.Errorf("failed to scan user: %w", err)
+		return dto.DtoUserFromDbToWeb{}, fmt.Errorf("failed to scan user: %w", err)
+	}
+	return user, nil
+}
+
+func (r *Repository) GetUserByEmail(ctx *gin.Context, email string) (dto.DtoUserFromDbToWeb, error) {
+	guery := `SELECT login, email, password FROM users WHERE email = $1`
+	var user dto.DtoUserFromDbToWeb
+	row := r.Client.QueryRow(ctx, guery, email)
+	if err := row.Scan(&user.UUID, &user.Login, &user.PasswordHash); err != nil {
+		return dto.DtoUserFromDbToWeb{}, fmt.Errorf("failed to scan user: %w", err)
+	}
+	return user, nil
+}
+
+func (r *Repository) GetUserByPhone(ctx *gin.Context, phone string) (dto.DtoUserFromDbToWeb, error) {
+	guery := `SELECT uuid, login, password FROM users WHERE phone = $1`
+	var user dto.DtoUserFromDbToWeb
+	row := r.Client.QueryRow(ctx, guery, phone)
+	if err := row.Scan(&user.UUID, &user.Login, &user.PasswordHash); err != nil {
+		return dto.DtoUserFromDbToWeb{}, fmt.Errorf("failed to scan user: %w", err)
 	}
 	return user, nil
 }
