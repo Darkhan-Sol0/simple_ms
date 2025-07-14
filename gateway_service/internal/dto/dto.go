@@ -7,7 +7,12 @@ type DtoRegUserLogin struct {
 	Password string `json:"password"`
 }
 
-type DtoAuthUserLogin struct {
+type DtoAuthUser struct {
 	Identifier string `json:"identifier"`
 	Password   string `json:"password"`
+}
+
+type DtoUserAuthToken struct {
+	UUID string `json:"uuid"`
+	Role string `json:"id_role"`
 }

@@ -21,7 +21,7 @@ func (h *Handler) Succes(ctx *gin.Context) {
 }
 
 func (h *Handler) Registaration(ctx *gin.Context) {
-	var regUser dto.DtoRegUserFwomWeb
+	var regUser dto.DtoRegUserFromWeb
 	if err := ctx.ShouldBindJSON(&regUser); err != nil {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
 		return
@@ -54,10 +54,10 @@ func (h *Handler) CheckAuthorization(ctx *gin.Context) {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
 		return
 	}
-	res, err := h.Service.TokenChecker(ctx, token)
+	userOut, err := h.Service.TokenChecker(ctx, token)
 	if err != nil {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusUnauthorized, err))
 		return
 	}
-	sendMessage(ctx, NewResult(res, http.StatusOK, nil))
+	sendMessage(ctx, NewResult(userOut, http.StatusOK, nil))
 }

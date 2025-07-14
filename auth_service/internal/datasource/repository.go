@@ -10,9 +10,9 @@ import (
 
 type Storage interface {
 	CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (string, error)
-	GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDbToWeb, error)
-	GetUserByEmail(ctx *gin.Context, email string) (dto.DtoUserFromDbToWeb, error)
-	GetUserByPhone(ctx *gin.Context, phone string) (dto.DtoUserFromDbToWeb, error)
+	GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDb, error)
+	GetUserByEmail(ctx *gin.Context, email string) (dto.DtoUserFromDb, error)
+	GetUserByPhone(ctx *gin.Context, phone string) (dto.DtoUserFromDb, error)
 }
 
 type Repository struct {
@@ -31,42 +31,52 @@ func (r *Repository) CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (stri
 		login, 
 		email, 
 		phone, 
-		password
-		) VALUES ($1, $2, $3, $4, $5) RETURNING uuid`
+		password,
+		id_role
+		) VALUES ($1, $2, $3, $4, $5, $6) RETURNING uuid`
 	var uuid string
-	err := r.Client.QueryRow(ctx, query, user.UUID, user.Login, user.Email, user.Phone, user.PasswordHash).Scan(&uuid)
+	err := r.Client.QueryRow(ctx, query, user.UUID, user.Login, user.Email, user.Phone, user.PasswordHash, user.Role).Scan(&uuid)
 	if err != nil {
 		return "", fmt.Errorf("failed to create user: %w", err)
 	}
 	return uuid, nil
 }
 
-func (r *Repository) GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDbToWeb, error) {
-	guery := `SELECT uuid, login, password FROM users WHERE login = $1`
-	var user dto.DtoUserFromDbToWeb
+func (r *Repository) GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDb, error) {
+	guery := `SELECT u.uuid, u.login, u.password, r.role 
+						FROM users u
+						JOIN roles r ON u.id_role = r.id
+						WHERE login = $1`
+	var user dto.DtoUserFromDb
 	row := r.Client.QueryRow(ctx, guery, login)
-	if err := row.Scan(&user.UUID, &user.Login, &user.PasswordHash); err != nil {
-		return dto.DtoUserFromDbToWeb{}, fmt.Errorf("failed to scan user: %w", err)
+	if err := row.Scan(&user.UUID, &user.Login, &user.PasswordHash, &user.Role); err != nil {
+		return dto.DtoUserFromDb{}, fmt.Errorf("failed to scan user: %w", err)
 	}
 	return user, nil
 }
 
-func (r *Repository) GetUserByEmail(ctx *gin.Context, email string) (dto.DtoUserFromDbToWeb, error) {
-	guery := `SELECT login, email, password FROM users WHERE email = $1`
-	var user dto.DtoUserFromDbToWeb
+func (r *Repository) GetUserByEmail(ctx *gin.Context, email string) (dto.DtoUserFromDb, error) {
+	guery := `SELECT u.uuid, u.login, u.password, r.role 
+						FROM users u
+						JOIN roles r ON u.id_role = r.id
+						WHERE email = $1`
+	var user dto.DtoUserFromDb
 	row := r.Client.QueryRow(ctx, guery, email)
-	if err := row.Scan(&user.UUID, &user.Login, &user.PasswordHash); err != nil {
-		return dto.DtoUserFromDbToWeb{}, fmt.Errorf("failed to scan user: %w", err)
+	if err := row.Scan(&user.UUID, &user.Login, &user.PasswordHash, &user.Role); err != nil {
+		return dto.DtoUserFromDb{}, fmt.Errorf("failed to scan user: %w", err)
 	}
 	return user, nil
 }
 
-func (r *Repository) GetUserByPhone(ctx *gin.Context, phone string) (dto.DtoUserFromDbToWeb, error) {
-	guery := `SELECT uuid, login, password FROM users WHERE phone = $1`
-	var user dto.DtoUserFromDbToWeb
+func (r *Repository) GetUserByPhone(ctx *gin.Context, phone string) (dto.DtoUserFromDb, error) {
+	guery := `SELECT u.uuid, u.login, u.password, r.role 
+						FROM users u
+						JOIN roles r ON u.id_role = r.id
+						WHERE phone = $1`
+	var user dto.DtoUserFromDb
 	row := r.Client.QueryRow(ctx, guery, phone)
-	if err := row.Scan(&user.UUID, &user.Login, &user.PasswordHash); err != nil {
-		return dto.DtoUserFromDbToWeb{}, fmt.Errorf("failed to scan user: %w", err)
+	if err := row.Scan(&user.UUID, &user.Login, &user.PasswordHash, &user.Role); err != nil {
+		return dto.DtoUserFromDb{}, fmt.Errorf("failed to scan user: %w", err)
 	}
 	return user, nil
 }

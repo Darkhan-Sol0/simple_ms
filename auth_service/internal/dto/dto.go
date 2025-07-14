@@ -20,7 +20,7 @@ type DtoAuthUserPhone struct {
 	Password string `json:"password"`
 }
 
-type DtoRegUserFwomWeb struct {
+type DtoRegUserFromWeb struct {
 	Login    string `json:"login"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
@@ -33,19 +33,27 @@ type DtoRegUserToDb struct {
 	Email        string `json:"email"`
 	Phone        string `json:"phone"`
 	PasswordHash []byte `json:"passwordhash"`
+	Role         int    `json:"id_role"`
 }
 
-type DtoUserFromDbToWeb struct {
+type DtoUserFromDb struct {
 	UUID         string `json:"uuid"`
 	Login        string `json:"login"`
 	PasswordHash []byte `json:"passwordhash"`
+	Role         string `json:"id_role"`
 }
 
 type DtoUserToToken struct {
 	UUID  string `json:"uuid"`
 	Login string `json:"login"`
+	Role  string `json:"id_role"`
 }
 
 type DtoTokenChecker struct {
 	Token string `json:"token"`
+}
+
+type DtoUserFromTokenToWeb struct {
+	UUID string `json:"uuid"`
+	Role string `json:"id_role"`
 }

@@ -11,6 +11,9 @@ const (
 	emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	loginRegex = `^[a-zA-Z0-9]{3,20}$`
 	phoneRegex = `^\+[0-9]{11}$`
+
+	ADMIN = 1
+	USER  = 2
 )
 
 type authImpl struct {
@@ -18,6 +21,7 @@ type authImpl struct {
 	Login        string
 	Email        string
 	Phone        string
+	Role         int
 	Password     string
 	PasswordHash []byte
 }
@@ -36,6 +40,7 @@ type Auth interface {
 	SetPhone(phone string)
 	SetPassword(password string)
 	SetPasswordHash(passwordHash []byte)
+	SetRole(role int)
 
 	GetUUID() string
 	GetLogin() string
@@ -43,10 +48,13 @@ type Auth interface {
 	GetPhone() string
 	GetPassword() string
 	GetPasswordHash() []byte
+	GetRole() int
 }
 
 func NewUser() Auth {
-	return &authImpl{}
+	return &authImpl{
+		Role: USER,
+	}
 }
 
 // Validator
@@ -137,6 +145,10 @@ func (a *authImpl) SetPasswordHash(passwordHash []byte) {
 	a.PasswordHash = passwordHash
 }
 
+func (a *authImpl) SetRole(role int) {
+	a.Role = role
+}
+
 func (a *authImpl) GetUUID() string {
 	return a.UUID
 }
@@ -159,4 +171,8 @@ func (a *authImpl) GetPassword() string {
 
 func (a *authImpl) GetPasswordHash() []byte {
 	return a.PasswordHash
+}
+
+func (a *authImpl) GetRole() int {
+	return a.Role
 }

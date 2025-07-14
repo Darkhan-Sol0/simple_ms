@@ -17,10 +17,10 @@ type authServiceImpl struct {
 }
 
 type AuthService interface {
-	CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFwomWeb) (string, error)
+	CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFromWeb) (string, error)
 	AuthUser(ctx *gin.Context, userAuth dto.DtoAuthUser) (string, error)
 	AuthUserByLogin(ctx *gin.Context, userAuth dto.DtoAuthUserLogin) (string, error)
-	TokenChecker(ctx *gin.Context, token string) (bool, error)
+	TokenChecker(ctx *gin.Context, token string) (dto.DtoUserFromTokenToWeb, error)
 }
 
 func NewService(store datasource.Storage) AuthService {
@@ -29,7 +29,7 @@ func NewService(store datasource.Storage) AuthService {
 	}
 }
 
-func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFwomWeb) (string, error) {
+func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFromWeb) (string, error) {
 	user := domain.NewUser()
 	user.SetUUID(uuid.GenerateUUID())
 	user.SetLogin(userReg.Login)
@@ -59,6 +59,7 @@ func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFwo
 		Email:        user.GetEmail(),
 		Phone:        user.GetPhone(),
 		PasswordHash: user.GetPasswordHash(),
+		Role:         user.GetRole(),
 	}
 
 	uuid, err := a.Storage.CreateUser(ctx, userOut)
@@ -113,6 +114,7 @@ func (a *authServiceImpl) AuthUserByLogin(ctx *gin.Context, userAuth dto.DtoAuth
 	userOut := dto.DtoUserToToken{
 		UUID:  userIn.UUID,
 		Login: userIn.Login,
+		Role:  userIn.Role,
 	}
 	token, err := jwt.GenerateToken(userOut)
 	if err != nil {
@@ -142,6 +144,7 @@ func (a *authServiceImpl) AuthUserByEmail(ctx *gin.Context, userAuth dto.DtoAuth
 	userOut := dto.DtoUserToToken{
 		UUID:  userIn.UUID,
 		Login: userIn.Login,
+		Role:  userIn.Role,
 	}
 	token, err := jwt.GenerateToken(userOut)
 	if err != nil {
@@ -171,6 +174,7 @@ func (a *authServiceImpl) AuthUserByPhone(ctx *gin.Context, userAuth dto.DtoAuth
 	userOut := dto.DtoUserToToken{
 		UUID:  userIn.UUID,
 		Login: userIn.Login,
+		Role:  userIn.Role,
 	}
 	token, err := jwt.GenerateToken(userOut)
 	if err != nil {
@@ -179,18 +183,22 @@ func (a *authServiceImpl) AuthUserByPhone(ctx *gin.Context, userAuth dto.DtoAuth
 	return token, nil
 }
 
-func (a *authServiceImpl) TokenChecker(ctx *gin.Context, token string) (bool, error) {
+func (a *authServiceImpl) TokenChecker(ctx *gin.Context, token string) (dto.DtoUserFromTokenToWeb, error) {
 	claim, err := jwt.ParseToken(token)
 	if err != nil {
-		return false, err
+		return dto.DtoUserFromTokenToWeb{}, err
 	}
 	user, err := a.Storage.GetUserByLogin(ctx, claim.Login)
 	if err != nil {
-		return false, err
+		return dto.DtoUserFromTokenToWeb{}, err
 	}
 
 	if user.UUID != claim.UUID {
-		return false, fmt.Errorf("invalid token")
+		return dto.DtoUserFromTokenToWeb{}, fmt.Errorf("invalid token")
 	}
-	return true, nil
+
+	return dto.DtoUserFromTokenToWeb{
+		UUID: user.UUID,
+		Role: user.Role,
+	}, nil
 }

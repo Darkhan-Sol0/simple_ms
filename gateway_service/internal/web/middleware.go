@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"gateway/internal/dto"
 	"net/http"
 	"strings"
 
@@ -37,14 +38,50 @@ func (h *Handler) ValidateToken() gin.HandlerFunc {
 			return
 		}
 		defer res.Body.Close()
-		var resp Respones
-		if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+		var response Response
+		if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
 			sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
 			ctx.Abort()
 			return
 		}
-		if resp.Err != nil {
-			sendMessage(ctx, NewResult(resp.Details, resp.Status, resp.Err))
+		if response.Err != nil {
+			sendMessage(ctx, NewResult(response.Details, response.Status, response.Err))
+			ctx.Abort()
+			return
+		}
+		var userData dto.DtoUserAuthToken
+		if data, ok := response.Data.(map[string]interface{}); ok {
+			userData = dto.DtoUserAuthToken{
+				UUID: data["uuid"].(string),
+				Role: data["id_role"].(string),
+			}
+		} else {
+			sendMessage(ctx, NewResult("bad conver token", http.StatusBadRequest, fmt.Errorf("bad conver token")))
+			ctx.Abort()
+			return
+		}
+		ctx.Set("userUUID", userData.UUID)
+		ctx.Set("userRole", userData.Role)
+		ctx.Next()
+	}
+}
+
+func (h *Handler) RoleAccessor(role string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		userRole, exists := ctx.Get("userRole")
+		if !exists {
+			sendMessage(ctx, NewResult("user role not found", http.StatusUnauthorized, fmt.Errorf("user role not found")))
+			ctx.Abort()
+			return
+		}
+		userRoleStr, ok := userRole.(string)
+		if !ok {
+			sendMessage(ctx, NewResult("invalid user role type", http.StatusInternalServerError, fmt.Errorf("invalid user role type")))
+			ctx.Abort()
+			return
+		}
+		if userRoleStr != role {
+			sendMessage(ctx, NewResult("access denied", http.StatusForbidden, fmt.Errorf("access denied")))
 			ctx.Abort()
 			return
 		}

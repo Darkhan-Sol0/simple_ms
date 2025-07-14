@@ -22,7 +22,7 @@ func (h *Handler) Registration(ctx *gin.Context) {
 		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
 	}
 	defer res.Body.Close()
-	var resp Respones
+	var resp Response
 	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
 		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
 		return
@@ -35,7 +35,7 @@ func (h *Handler) Registration(ctx *gin.Context) {
 }
 
 func (h *Handler) Authorization(ctx *gin.Context) {
-	var regUser dto.DtoAuthUserLogin
+	var regUser dto.DtoAuthUser
 	if err := ctx.ShouldBindJSON(&regUser); err != nil {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
 		return
@@ -46,7 +46,7 @@ func (h *Handler) Authorization(ctx *gin.Context) {
 		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
 	}
 	defer res.Body.Close()
-	var resp Respones
+	var resp Response
 	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
 		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
 		return

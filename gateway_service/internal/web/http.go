@@ -18,8 +18,14 @@ func NewHandler() *Handler {
 
 func (h *Handler) RegistrateHandler(r *gin.Engine) {
 	r.GET("/", h.MainHandler)
-	r.GET("/auth/test/s", h.ValidateToken(), h.Test)
-	r.GET("/auth/test/b", h.Test_bad)
 	r.POST("/auth/sign_up", h.Registration)
 	r.POST("/auth/sign_in", h.Authorization)
+
+	useGroup := r.Group("/", h.ValidateToken())
+	{
+		useGroup.GET("/main/", h.MainHandler)
+		useGroup.GET("/auth/test/s", h.RoleAccessor("admin"), h.Test)
+		useGroup.GET("/auth/test/ss", h.RoleAccessor("user"), h.Test)
+		useGroup.GET("/auth/test/b", h.Test_bad)
+	}
 }

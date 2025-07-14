@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Respones struct {
+type Response struct {
 	Status  int         `json:"status"`
 	Data    interface{} `json:"data"`
 	Err     interface{} `json:"error"`

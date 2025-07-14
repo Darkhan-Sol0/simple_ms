@@ -16,10 +16,10 @@ func (h *Handler) MainHandler(ctx *gin.Context) {
 func (h *Handler) Test(ctx *gin.Context) {
 	res, err := http.Get(fmt.Sprintf("%s/suc", h.Services.Auth_service))
 	if err != nil {
-		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
+		sendMessage(ctx, NewResult(err.Error(), http.StatusBadRequest, err))
 	}
 	defer res.Body.Close()
-	var resp Respones
+	var resp Response
 	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
 		sendMessage(ctx, NewResult(resp.Data, resp.Status, err))
 		return
@@ -37,7 +37,7 @@ func (h *Handler) Test_bad(ctx *gin.Context) {
 		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
 	}
 	defer res.Body.Close()
-	var resp Respones
+	var resp Response
 	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
 		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
 		return
