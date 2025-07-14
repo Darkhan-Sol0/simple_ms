@@ -21,11 +21,21 @@ func (h *Handler) RegistrateHandler(r *gin.Engine) {
 	r.POST("/auth/sign_up", h.Registration)
 	r.POST("/auth/sign_in", h.Authorization)
 
-	useGroup := r.Group("/", h.ValidateToken())
+	validGroup := r.Group("/", h.ValidateToken())
 	{
-		useGroup.GET("/main/", h.MainHandler)
-		useGroup.GET("/auth/test/s", h.RoleAccessor("admin"), h.Test)
-		useGroup.GET("/auth/test/ss", h.RoleAccessor("user"), h.Test)
-		useGroup.GET("/auth/test/b", h.Test_bad)
+		validGroup.GET("/main/", h.MainHandler)
+		validGroup.GET("/auth/test/b", h.Test_bad)
+		// validGroup.GET("/user_list", h.GetUserList)
+
+		adminGroup := validGroup.Group("/admin", h.RoleAccessor("admin"))
+		{
+			adminGroup.GET("/user_list", h.GetUserList)
+			adminGroup.GET("/test/s", h.Test)
+		}
+
+		userGroup := validGroup.Group("/user", h.RoleAccessor("user"))
+		{
+			userGroup.GET("/test/s", h.Test)
+		}
 	}
 }

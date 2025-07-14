@@ -61,3 +61,12 @@ func (h *Handler) CheckAuthorization(ctx *gin.Context) {
 	}
 	sendMessage(ctx, NewResult(userOut, http.StatusOK, nil))
 }
+
+func (h *Handler) GetUsersList(ctx *gin.Context) {
+	userList, err := h.Service.GetUsersList(ctx)
+	if err != nil {
+		sendMessage(ctx, NewResult("invalid internal service", http.StatusBadRequest, err))
+		return
+	}
+	sendMessage(ctx, NewResult(userList, http.StatusOK, nil))
+}

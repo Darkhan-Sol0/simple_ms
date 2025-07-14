@@ -26,4 +26,6 @@ func (h *Handler) RegistrationHandlers(r *gin.Engine) {
 	r.POST("/sign_in", h.Authorization)
 
 	r.POST("/check_auth", h.CheckAuthorization)
+
+	r.GET("/user_list", h.GetUsersList)
 }

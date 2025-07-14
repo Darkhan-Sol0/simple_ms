@@ -48,3 +48,21 @@ func (h *Handler) Test_bad(ctx *gin.Context) {
 	}
 	sendMessage(ctx, NewResult(resp.Data, resp.Status, nil))
 }
+
+func (h *Handler) GetUserList(ctx *gin.Context) {
+	res, err := http.Get(fmt.Sprintf("%s/user_list", h.Services.Auth_service))
+	if err != nil {
+		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
+	}
+	defer res.Body.Close()
+	var resp Response
+	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
+		return
+	}
+	if resp.Err != nil {
+		sendMessage(ctx, NewResult(resp.Details, resp.Status, resp.Err))
+		return
+	}
+	sendMessage(ctx, NewResult(resp.Data, resp.Status, nil))
+}

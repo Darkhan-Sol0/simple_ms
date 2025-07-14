@@ -53,7 +53,7 @@ func (h *Handler) ValidateToken() gin.HandlerFunc {
 		if data, ok := response.Data.(map[string]interface{}); ok {
 			userData = dto.DtoUserAuthToken{
 				UUID: data["uuid"].(string),
-				Role: data["id_role"].(string),
+				Role: data["role"].(string),
 			}
 		} else {
 			sendMessage(ctx, NewResult("bad conver token", http.StatusBadRequest, fmt.Errorf("bad conver token")))

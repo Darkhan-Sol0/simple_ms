@@ -21,6 +21,7 @@ type AuthService interface {
 	AuthUser(ctx *gin.Context, userAuth dto.DtoAuthUser) (string, error)
 	AuthUserByLogin(ctx *gin.Context, userAuth dto.DtoAuthUserLogin) (string, error)
 	TokenChecker(ctx *gin.Context, token string) (dto.DtoUserFromTokenToWeb, error)
+	GetUsersList(ctx *gin.Context) ([]dto.DtoUserInfoFromDb, error)
 }
 
 func NewService(store datasource.Storage) AuthService {
@@ -201,4 +202,12 @@ func (a *authServiceImpl) TokenChecker(ctx *gin.Context, token string) (dto.DtoU
 		UUID: user.UUID,
 		Role: user.Role,
 	}, nil
+}
+
+func (a *authServiceImpl) GetUsersList(ctx *gin.Context) ([]dto.DtoUserInfoFromDb, error) {
+	userList, err := a.Storage.GetUserInfoList(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return userList, nil
 }
