@@ -5,7 +5,7 @@ import "regexp"
 const (
 	emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	loginRegex = `^[a-zA-Z0-9]{3,20}$`
-	phoneRegex = `^\+[0-9]{11}$`
+	phoneRegex = `^\+[0-9]{10,15}$`
 )
 
 func isValid(pattern, input string) bool {

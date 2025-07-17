@@ -28,15 +28,10 @@ func NewRepository(client database.Client) Storage {
 
 func (r *Repository) CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (string, error) {
 	query := `INSERT INTO users (
-		uuid, 
-		login, 
-		email, 
-		phone, 
-		passwordhash,
-		id_role
-		) VALUES ($1, $2, $3, $4, $5, $6) RETURNING uuid`
+		login, email, phone, password_hash,	user_role
+		) VALUES ($1, $2, $3, $4, $5) RETURNING uuid`
 	var uuid string
-	err := r.Client.QueryRow(ctx, query, user.UUID, user.Login, user.Email, user.Phone, user.PasswordHash, user.Role).Scan(&uuid)
+	err := r.Client.QueryRow(ctx, query, user.Login, user.Email, user.Phone, user.PasswordHash, user.Role).Scan(&uuid)
 	if err != nil {
 		return "", fmt.Errorf("failed to create user: %w", err)
 	}
@@ -44,9 +39,8 @@ func (r *Repository) CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (stri
 }
 
 func (r *Repository) GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDb, error) {
-	guery := `SELECT u.uuid, u.login, u.passwordhash, r.role 
-						FROM users u
-						JOIN roles r ON u.id_role = r.id
+	guery := `SELECT uuid, login, password_hash, user_role 
+						FROM users
 						WHERE login = $1`
 	var user dto.DtoUserFromDb
 	row := r.Client.QueryRow(ctx, guery, login)
@@ -57,9 +51,8 @@ func (r *Repository) GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUser
 }
 
 func (r *Repository) GetUserByEmail(ctx *gin.Context, email string) (dto.DtoUserFromDb, error) {
-	guery := `SELECT u.uuid, u.login, u.passwordhash, r.role 
-						FROM users u
-						JOIN roles r ON u.id_role = r.id
+	guery := `SELECT uuid, login, password_hash, user_role 
+						FROM users
 						WHERE email = $1`
 	var user dto.DtoUserFromDb
 	row := r.Client.QueryRow(ctx, guery, email)
@@ -70,9 +63,8 @@ func (r *Repository) GetUserByEmail(ctx *gin.Context, email string) (dto.DtoUser
 }
 
 func (r *Repository) GetUserByPhone(ctx *gin.Context, phone string) (dto.DtoUserFromDb, error) {
-	guery := `SELECT u.uuid, u.login, u.passwordhash, r.role 
-						FROM users u
-						JOIN roles r ON u.id_role = r.id
+	guery := `SELECT uuid, login, password_hash, user_role 
+						FROM users
 						WHERE phone = $1`
 	var user dto.DtoUserFromDb
 	row := r.Client.QueryRow(ctx, guery, phone)
@@ -83,9 +75,8 @@ func (r *Repository) GetUserByPhone(ctx *gin.Context, phone string) (dto.DtoUser
 }
 
 func (r *Repository) GetUserInfoList(ctx *gin.Context) ([]dto.DtoUserInfoFromDb, error) {
-	guery := `SELECT u.uuid, u.login, u.email, u.phone, u.passwordhash, r.role 
-						FROM users u
-						JOIN roles r ON u.id_role = r.id`
+	guery := `SELECT uuid, login, email, phone, password_hash, user_role, created_at, updated_at, is_active
+						FROM users`
 	rows, err := r.Client.Query(ctx, guery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query users: %w", err)
@@ -94,7 +85,7 @@ func (r *Repository) GetUserInfoList(ctx *gin.Context) ([]dto.DtoUserInfoFromDb,
 	var users []dto.DtoUserInfoFromDb
 	for rows.Next() {
 		var user dto.DtoUserInfoFromDb
-		if err := rows.Scan(&user.UUID, &user.Login, &user.Email, &user.Phone, &user.PasswordHash, &user.Role); err != nil {
+		if err := rows.Scan(&user.UUID, &user.Login, &user.Email, &user.Phone, &user.PasswordHash, &user.Role, &user.DateCreate, &user.DateUpdate, &user.Active); err != nil {
 			return nil, fmt.Errorf("failed to scan user: %w", err)
 		}
 		users = append(users, user)

@@ -14,27 +14,33 @@ type Response struct {
 type Result struct {
 	status int
 	data   interface{}
-	err    interface{}
 }
 
-func NewResult(data interface{}, status int, err interface{}) Result {
+func NewResult(data interface{}, status int) Result {
 	return Result{
 		data:   data,
-		err:    err,
 		status: status,
 	}
 }
 
-func sendMessage(ctx *gin.Context, res Result) {
-	if res.err != nil {
-		ctx.JSON(res.status, gin.H{
-			"status": res.status,
-			"error":  res.data,
-		})
+func sendError(ctx *gin.Context, res Result) {
+	ctx.JSON(res.status, gin.H{
+		"status": res.status,
+		"error":  res.data,
+	})
+}
+
+func sendSucces(ctx *gin.Context, res Result) {
+	ctx.JSON(res.status, gin.H{
+		"status": res.status,
+		"data":   res.data,
+	})
+}
+
+func sendMessage(ctx *gin.Context, response Response) {
+	if response.Err != nil {
+		sendError(ctx, NewResult(response.Details, response.Status))
 	} else {
-		ctx.JSON(res.status, gin.H{
-			"status": res.status,
-			"data":   res.data,
-		})
+		sendSucces(ctx, NewResult(response.Data, response.Status))
 	}
 }

@@ -1,7 +1,6 @@
 package web
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"gateway/internal/dto"
@@ -13,47 +12,61 @@ import (
 func (h *Handler) Registration(ctx *gin.Context) {
 	var regUser dto.DtoRegUserLogin
 	if err := ctx.ShouldBindJSON(&regUser); err != nil {
-		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
+		sendMessage(ctx, ErrorResponce(errorInvalidJSON, http.StatusBadRequest, err))
 		return
 	}
-	jsonData, _ := json.Marshal(regUser)
-	res, err := http.Post(fmt.Sprintf("%s/sign_up", h.Services.Auth_service), "application/json", bytes.NewBuffer(jsonData))
+	jsonData, err := json.Marshal(regUser)
 	if err != nil {
-		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
-	}
-	defer res.Body.Close()
-	var resp Response
-	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
-		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
+		sendMessage(ctx, ErrorResponce(errorMarshalJSON, http.StatusBadRequest, err))
 		return
 	}
-	if resp.Err != nil {
-		sendMessage(ctx, NewResult(resp.Details, resp.Status, resp.Err))
+	link := fmt.Sprintf("%s/sign_up", h.Services.Auth_service)
+	responseAuth, err := SendRequest(ctx, link, POST, jsonData, nil)
+	if err != nil {
+		sendMessage(ctx, ErrorResponce(errorResponceInternalService, http.StatusBadRequest, err))
+	}
+	resp, err := GetResponce(ctx, responseAuth)
+	if err != nil {
 		return
 	}
-	sendMessage(ctx, NewResult(resp.Data, resp.Status, nil))
+	jsonData, err = json.Marshal(resp.Data)
+	if err != nil {
+		sendMessage(ctx, ErrorResponce(errorMarshalJSON, http.StatusBadRequest, err))
+		return
+	}
+	link = fmt.Sprintf("%s/", h.Services.Users_service)
+	responseUser, err := SendRequest(ctx, link, POST, jsonData, nil)
+	if err != nil {
+		sendMessage(ctx, ErrorResponce(errorResponceInternalService, http.StatusBadRequest, err))
+		return
+	}
+	resp, err = GetResponce(ctx, responseUser)
+	if err != nil {
+		return
+	}
+	sendMessage(ctx, resp)
 }
 
 func (h *Handler) Authorization(ctx *gin.Context) {
 	var regUser dto.DtoAuthUser
 	if err := ctx.ShouldBindJSON(&regUser); err != nil {
-		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
+		sendMessage(ctx, ErrorResponce(errorInvalidJSON, http.StatusBadRequest, err))
 		return
 	}
-	jsonData, _ := json.Marshal(regUser)
-	res, err := http.Post(fmt.Sprintf("%s/sign_in", h.Services.Auth_service), "application/json", bytes.NewBuffer(jsonData))
+	jsonData, err := json.Marshal(regUser)
 	if err != nil {
-		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
-	}
-	defer res.Body.Close()
-	var resp Response
-	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
-		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, err))
+		sendMessage(ctx, ErrorResponce(errorMarshalJSON, http.StatusBadRequest, err))
 		return
 	}
-	if resp.Err != nil {
-		sendMessage(ctx, NewResult(resp.Details, resp.Status, resp.Err))
+	link := fmt.Sprintf("%s/sign_in", h.Services.Auth_service)
+	response, err := SendRequest(ctx, link, POST, jsonData, nil)
+	if err != nil {
+		sendMessage(ctx, ErrorResponce(errorResponceInternalService, http.StatusBadRequest, err))
 		return
 	}
-	sendMessage(ctx, NewResult(resp.Data, resp.Status, nil))
+	resp, err := GetResponce(ctx, response)
+	if err != nil {
+		return
+	}
+	sendMessage(ctx, resp)
 }

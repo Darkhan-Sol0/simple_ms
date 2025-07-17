@@ -5,7 +5,6 @@ import (
 	"auth_service/internal/domain"
 	"auth_service/internal/dto"
 	"auth_service/pkg/jwt"
-	"auth_service/pkg/uuid"
 	"fmt"
 	"log"
 
@@ -32,7 +31,6 @@ func NewService(store datasource.Storage) AuthService {
 
 func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFromWeb) (string, error) {
 	user := domain.NewUser()
-	user.SetUUID(uuid.GenerateUUID())
 	user.SetLogin(userReg.Login)
 	user.SetEmail(userReg.Email)
 	user.SetPhone(userReg.Phone)
@@ -55,7 +53,6 @@ func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFro
 	}
 
 	userOut := dto.DtoRegUserToDb{
-		UUID:         user.GetUUID(),
 		Login:        user.GetLogin(),
 		Email:        user.GetEmail(),
 		Phone:        user.GetPhone(),

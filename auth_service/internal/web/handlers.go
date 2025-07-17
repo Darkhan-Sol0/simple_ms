@@ -2,23 +2,10 @@ package web
 
 import (
 	"auth_service/internal/dto"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
-
-func (h *Handler) Main(ctx *gin.Context) {
-	sendMessage(ctx, NewResult("Hello, World!", http.StatusOK, nil))
-}
-
-func (h *Handler) Erro(ctx *gin.Context) {
-	sendMessage(ctx, NewResult(nil, http.StatusBadRequest, fmt.Errorf("this bad request")))
-}
-
-func (h *Handler) Succes(ctx *gin.Context) {
-	sendMessage(ctx, NewResult("This success request!", http.StatusOK, nil))
-}
 
 func (h *Handler) Registaration(ctx *gin.Context) {
 	var regUser dto.DtoRegUserFromWeb

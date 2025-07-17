@@ -32,3 +32,10 @@ mod:
 
 get:
 	go get -u $(PACKAGE)
+
+goose_up:
+	goose -dir migrations postgres "postgresql://user:123@0.0.0.0:5430/auth_db?sslmode=disable" up
+
+goose_down:
+	goose -dir migrations postgres "postgresql://user:123@0.0.0.0:5430/auth_db?sslmode=disable" down
+

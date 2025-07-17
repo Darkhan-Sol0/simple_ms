@@ -10,10 +10,10 @@ import (
 const (
 	emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 	loginRegex = `^[a-zA-Z0-9]{3,20}$`
-	phoneRegex = `^\+[0-9]{11}$`
+	phoneRegex = `^\+[0-9]{10,15}$`
 
-	ADMIN = 1
-	USER  = 2
+	ADMIN = `admin`
+	USER  = `user`
 )
 
 type authImpl struct {
@@ -21,7 +21,7 @@ type authImpl struct {
 	Login        string
 	Email        string
 	Phone        string
-	Role         int
+	Role         string
 	Password     string
 	PasswordHash []byte
 }
@@ -40,7 +40,7 @@ type Auth interface {
 	SetPhone(phone string)
 	SetPassword(password string)
 	SetPasswordHash(passwordHash []byte)
-	SetRole(role int)
+	SetRole(role string)
 
 	GetUUID() string
 	GetLogin() string
@@ -48,7 +48,7 @@ type Auth interface {
 	GetPhone() string
 	GetPassword() string
 	GetPasswordHash() []byte
-	GetRole() int
+	GetRole() string
 }
 
 func NewUser() Auth {
@@ -145,7 +145,7 @@ func (a *authImpl) SetPasswordHash(passwordHash []byte) {
 	a.PasswordHash = passwordHash
 }
 
-func (a *authImpl) SetRole(role int) {
+func (a *authImpl) SetRole(role string) {
 	a.Role = role
 }
 
@@ -173,6 +173,6 @@ func (a *authImpl) GetPasswordHash() []byte {
 	return a.PasswordHash
 }
 
-func (a *authImpl) GetRole() int {
+func (a *authImpl) GetRole() string {
 	return a.Role
 }
