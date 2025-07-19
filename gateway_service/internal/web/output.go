@@ -1,14 +1,16 @@
 package web
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
 type Response struct {
-	Status  int         `json:"status"`
-	Data    interface{} `json:"data"`
-	Err     interface{} `json:"error"`
-	Details string      `json:"details"`
+	Data    interface{}
+	Err     interface{}
+	Status  int
+	Details string
 }
 
 type Result struct {
@@ -37,10 +39,11 @@ func sendSucces(ctx *gin.Context, res Result) {
 	})
 }
 
-func sendMessage(ctx *gin.Context, response Response) {
-	if response.Err != nil {
-		sendError(ctx, NewResult(response.Details, response.Status))
-	} else {
-		sendSucces(ctx, NewResult(response.Data, response.Status))
+func (h *Handler) sendMessage(ctx *gin.Context, response *http.Response) {
+	resp, err := h.GetResponse(response)
+	if err != nil {
+		sendError(ctx, NewResult(err.Error(), resp.Status))
+		return
 	}
+	sendSucces(ctx, NewResult(resp.Data, resp.Status))
 }

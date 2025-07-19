@@ -6,7 +6,6 @@ import (
 	"auth_service/internal/dto"
 	"auth_service/pkg/jwt"
 	"fmt"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -69,7 +68,6 @@ func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFro
 }
 
 func (a *authServiceImpl) AuthUser(ctx *gin.Context, userAuth dto.DtoAuthUser) (token string, err error) {
-	log.Println(userAuth)
 	if isEmail(userAuth.Identifier) {
 		user := dto.DtoAuthUserEmail{Email: userAuth.Identifier, Password: userAuth.Password}
 		if token, err = a.AuthUserByEmail(ctx, user); err != nil {

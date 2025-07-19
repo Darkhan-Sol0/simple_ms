@@ -1,81 +1,67 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"gateway/internal/dto"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) ValidateToken() gin.HandlerFunc {
+func (h *Handler) Timeout() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		authHeader := ctx.GetHeader("Authorization")
-		if authHeader == "" {
-			sendMessage(ctx, ErrorResponce(errorUnauthorized, http.StatusUnauthorized, fmt.Errorf("unauthorized")))
-			ctx.Abort()
+		if h.semaphore == nil {
+			h.MakeSemophore()
+		}
+		ok, release := h.checkSemaphore(ctx)
+		if !ok {
+			ctx.AbortWithStatus(http.StatusRequestTimeout)
 			return
 		}
-		token := strings.Split(authHeader, " ")
-		if len(token) != 2 || token[0] != "Bearer" {
-			sendMessage(ctx, ErrorResponce(errorToken, http.StatusUnauthorized, fmt.Errorf("unauthorized")))
-			ctx.Abort()
-			return
-		}
-		jsonData, err := json.Marshal(token[1])
-		if err != nil {
-			sendMessage(ctx, ErrorResponce(errorMarshalJSON, http.StatusUnauthorized, fmt.Errorf("unauthorized")))
-			ctx.Abort()
-			return
-		}
-		link := fmt.Sprintf("%s/check_auth", h.Services.Auth_service)
-		response, err := SendRequest(ctx, link, POST, jsonData, nil)
-		if err != nil {
-			sendMessage(ctx, ErrorResponce(errorToken, http.StatusUnauthorized, fmt.Errorf("unauthorized")))
-			ctx.Abort()
-			return
-		}
-		resp, err := GetResponce(ctx, response)
-		if err != nil {
-			return
-		}
-		var userData dto.DtoUserAuthToken
-		if data, ok := resp.Data.(map[string]interface{}); ok {
-			userData = dto.DtoUserAuthToken{
-				UUID: data["uuid"].(string),
-				Role: data["user_role"].(string),
-			}
-		} else {
-			sendMessage(ctx, ErrorResponce(errorToken, http.StatusUnauthorized, fmt.Errorf("unauthorized")))
-			ctx.Abort()
-			return
-		}
-		ctx.Set("userUUID", userData.UUID)
-		ctx.Set("userRole", userData.Role)
+		defer release()
 		ctx.Next()
 	}
 }
 
-func (h *Handler) RoleAccessor(role string) gin.HandlerFunc {
+func (h *Handler) DecodeToken() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		userRole, exists := ctx.Get("userRole")
-		if !exists {
-			sendMessage(ctx, ErrorResponce(errorRoleNotFound, http.StatusUnauthorized, fmt.Errorf("unauthorized")))
-			ctx.Abort()
+		tokenAuth := ctx.GetHeader("Authorization")
+		if tokenAuth == "" {
+			ctx.Next()
 			return
 		}
-		userRoleStr, ok := userRole.(string)
-		if !ok {
-			sendMessage(ctx, ErrorResponce(errorRoleType, http.StatusUnauthorized, fmt.Errorf("unauthorized")))
-			ctx.Abort()
+		parts := strings.Split(tokenAuth, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			ctx.Next()
 			return
 		}
-		if userRoleStr != role {
-			sendMessage(ctx, ErrorResponce(errorAccessRole, http.StatusUnauthorized, fmt.Errorf("unauthorized")))
-			ctx.Abort()
+		token := parts[1]
+		jsonData, _ := json.Marshal(map[string]string{"token": token})
+		link := fmt.Sprintf("%s/check_auth", h.Services.Service["auth"])
+		req, _ := http.NewRequest("POST", link, bytes.NewBuffer(jsonData))
+		req.Header.Set("Content-Type", "application/json")
+		cl := &http.Client{Timeout: time.Duration(h.Services.SemophoreTimeout) * time.Second}
+		res, err := cl.Do(req)
+		if err != nil {
+			ctx.Next()
 			return
+		}
+		defer res.Body.Close()
+		resp, err := h.GetResponse(res)
+		if err != nil {
+			ctx.Next()
+			return
+		}
+		if data, ok := resp.Data.(map[string]interface{}); ok {
+			if uuid, ok := data["uuid"].(string); ok {
+				ctx.Set("X-User-UUID", uuid)
+			}
+			if role, ok := data["user_role"].(string); ok {
+				ctx.Set("X-User-Role", role)
+			}
 		}
 		ctx.Next()
 	}

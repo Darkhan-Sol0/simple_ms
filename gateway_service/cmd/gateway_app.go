@@ -11,7 +11,7 @@ func main() {
 	r := gin.Default()
 	handler := web.NewHandler()
 	handler.RegistrateHandler(r)
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run(handler.Services.Port); err != nil {
 		log.Fatalln("Server failed: ", err)
 	}
 }

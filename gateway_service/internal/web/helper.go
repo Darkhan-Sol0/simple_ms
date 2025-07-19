@@ -1,55 +1,58 @@
 package web
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	GET    = "GET"
-	POST   = "POST"
-	PUT    = "PUT"
-	PATCH  = "PATCH"
-	DELETE = "DELETE"
-)
+func (h *Handler) proxyRequest(ctx *gin.Context, link string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx.Request.Context(), ctx.Request.Method, link, ctx.Request.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	headersToCopy := []string{
+		"X-User-UUID",
+		"X-User-Role",
+	}
 
-func GetResponce(ctx *gin.Context, response *http.Response) (Response, error) {
+	for _, header := range headersToCopy {
+		if value, ok := ctx.Get(header); ok {
+			req.Header.Add(header, value.(string))
+		}
+	}
+	client := &http.Client{
+		Timeout: time.Duration(h.Services.RequestTimeout) * time.Second,
+	}
+	return client.Do(req)
+}
+
+func (h *Handler) proxyResponse(ctx *gin.Context, response *http.Response) {
+	h.sendMessage(ctx, response)
+}
+
+func (h *Handler) GetResponse(response *http.Response) (Response, error) {
 	defer response.Body.Close()
 	var resp Response
 	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
-		sendMessage(ctx, ErrorResponce(errorDecodeJSON, http.StatusBadRequest, err))
-		return Response{}, err
+		return Response{Status: http.StatusBadGateway}, err
 	}
 	if resp.Err != nil {
-		sendMessage(ctx, ErrorResponce(resp.Details, resp.Status, fmt.Errorf("error")))
-		return Response{}, fmt.Errorf("error")
+		return Response{Status: resp.Status}, fmt.Errorf("error: %s", resp.Details)
 	}
 	return resp, nil
 }
 
-func SendRequest(ctx *gin.Context, link, httpMethod string, jsonData []byte, headerMap map[string]string) (*http.Response, error) {
-	validMethods := map[string]bool{
-		"GET": true, "POST": true, "PUT": true,
-		"PATCH": true, "DELETE": true,
+func (h *Handler) checkSemaphore(c *gin.Context) (bool, func()) {
+	select {
+	case h.semaphore <- struct{}{}:
+		return true, func() { <-h.semaphore }
+	case <-time.After(time.Duration(h.Services.SemophoreTimeout) * time.Second):
+		return false, nil
+	case <-c.Request.Context().Done():
+		return false, nil
 	}
-	if !validMethods[strings.ToUpper(httpMethod)] {
-		return nil, fmt.Errorf("invalid HTTP method: %s", httpMethod)
-	}
-	req, err := http.NewRequestWithContext(ctx.Request.Context(), httpMethod, link, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, err
-	}
-	if jsonData != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-	for key, value := range headerMap {
-		req.Header.Set(key, value)
-	}
-	client := &http.Client{}
-	return client.Do(req)
 }

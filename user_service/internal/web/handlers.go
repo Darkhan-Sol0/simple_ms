@@ -25,7 +25,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 
 func (h *Handler) GetUser(ctx *gin.Context) {
 	var user dto.DtoUuidUserFromWeb
-	user.UUID = ctx.Param(":uuid")
+	user.UUID = ctx.Param("uuid")
 	res, err := h.Service.GetUser(ctx, user)
 	if err != nil {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusInternalServerError, err))

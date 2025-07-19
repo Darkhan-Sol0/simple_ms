@@ -36,12 +36,12 @@ func (h *Handler) Authorization(ctx *gin.Context) {
 }
 
 func (h *Handler) CheckAuthorization(ctx *gin.Context) {
-	var token string
+	var token dto.DtoTokenChecker
 	if err := ctx.ShouldBindJSON(&token); err != nil {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
 		return
 	}
-	userOut, err := h.Service.TokenChecker(ctx, token)
+	userOut, err := h.Service.TokenChecker(ctx, token.Token)
 	if err != nil {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusUnauthorized, err))
 		return

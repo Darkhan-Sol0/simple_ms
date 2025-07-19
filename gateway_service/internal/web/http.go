@@ -7,27 +7,20 @@ import (
 )
 
 type Handler struct {
-	Services config.Services
+	Services  config.Services
+	semaphore chan struct{}
 }
 
 func NewHandler() *Handler {
 	return &Handler{
-		Services: *config.GetService(),
+		Services: *config.GetCongigs(),
 	}
 }
 
+func (h *Handler) MakeSemophore() {
+	h.semaphore = make(chan struct{}, h.Services.SemophoreCount)
+}
+
 func (h *Handler) RegistrateHandler(r *gin.Engine) {
-	r.POST("/auth/sign_up", h.Registration)
-	r.POST("/auth/sign_in", h.Authorization)
-
-	validGroup := r.Group("/", h.ValidateToken())
-	{
-		validGroup.GET("/user", h.GetSelfUser)
-		validGroup.PATCH("/user", h.UserUpdateInfo)
-
-		adminGroup := validGroup.Group("/admin", h.RoleAccessor("admin"))
-		{
-			adminGroup.GET("/user_list", h.GetUserList)
-		}
-	}
+	r.Any("/:service/*path", h.Timeout(), h.DecodeToken(), h.CreateRequest)
 }
