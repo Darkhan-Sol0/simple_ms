@@ -23,4 +23,5 @@ func (h *Handler) MakeSemophore() {
 
 func (h *Handler) RegistrateHandler(r *gin.Engine) {
 	r.Any("/:service/*path", h.Timeout(), h.DecodeToken(), h.CreateRequest)
+	r.NoRoute(h.NoRouting)
 }

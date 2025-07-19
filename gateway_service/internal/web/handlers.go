@@ -29,3 +29,7 @@ func (h *Handler) CreateRequest(ctx *gin.Context) {
 	defer response.Body.Close()
 	h.proxyResponse(ctx, response)
 }
+
+func (h *Handler) NoRouting(ctx *gin.Context) {
+	sendError(ctx, NewResult("Not Found", http.StatusNotFound))
+}

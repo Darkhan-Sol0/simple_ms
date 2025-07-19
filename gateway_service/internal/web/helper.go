@@ -18,7 +18,6 @@ func (h *Handler) proxyRequest(ctx *gin.Context, link string) (*http.Response, e
 		"X-User-UUID",
 		"X-User-Role",
 	}
-
 	for _, header := range headersToCopy {
 		if value, ok := ctx.Get(header); ok {
 			req.Header.Add(header, value.(string))
@@ -34,11 +33,12 @@ func (h *Handler) proxyResponse(ctx *gin.Context, response *http.Response) {
 	h.sendMessage(ctx, response)
 }
 
+// ToDo переработать Функцию. Она не корректна
 func (h *Handler) GetResponse(response *http.Response) (Response, error) {
 	defer response.Body.Close()
 	var resp Response
 	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
-		return Response{Status: http.StatusBadGateway}, err
+		return Response{Status: response.StatusCode}, err
 	}
 	if resp.Err != nil {
 		return Response{Status: resp.Status}, fmt.Errorf("error: %s", resp.Details)
