@@ -21,6 +21,7 @@ type Services struct {
 	Port             string            `env:"PORT"`
 	ParsTags         map[string]string `env:"PARS_TAGS" env-delim:"," env-pairs:":"`
 	InternalTag      string            `env:"INTERNAL_TAG"`
+	Index            string            `env:"INDEX"`
 }
 
 var (

@@ -9,6 +9,8 @@ import (
 
 func main() {
 	r := gin.Default()
+	r.LoadHTMLGlob("static/*")
+	r.Static("/static", "./static")
 	handler := web.NewHandler()
 	handler.RegistrateHandler(r)
 	if err := r.Run(handler.Services.Port); err != nil {

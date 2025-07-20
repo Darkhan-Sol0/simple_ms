@@ -25,3 +25,7 @@ func (h *Handler) CreateRequest(ctx *gin.Context) {
 func (h *Handler) NoRouting(ctx *gin.Context) {
 	h.sendMessage(ctx, NewResult(nil, http.StatusNotFound, fmt.Errorf("error: Not Found Service")))
 }
+
+func (h *Handler) index(ctx *gin.Context) {
+	ctx.HTML(http.StatusOK, h.Services.Index, nil)
+}
