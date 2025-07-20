@@ -16,17 +16,22 @@ func NewResult(data any, status int, err error) Result {
 	}
 }
 
+func sendError(ctx *gin.Context, res Result) {
+	ctx.JSON(res.status, gin.H{
+		"error": res.err.Error(),
+	})
+}
+
+func sendSucces(ctx *gin.Context, res Result) {
+	ctx.JSON(res.status, gin.H{
+		"data": res.data,
+	})
+}
+
 func sendMessage(ctx *gin.Context, res Result) {
 	if res.err != nil {
-		ctx.JSON(res.status, gin.H{
-			"status":  res.status,
-			"error":   res.err,
-			"details": res.err.Error(),
-		})
-	} else {
-		ctx.JSON(res.status, gin.H{
-			"status": res.status,
-			"data":   res.data,
-		})
+		sendError(ctx, res)
+		return
 	}
+	sendSucces(ctx, res)
 }

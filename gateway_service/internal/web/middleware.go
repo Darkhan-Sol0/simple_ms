@@ -56,11 +56,10 @@ func (h *Handler) DecodeToken() gin.HandlerFunc {
 			return
 		}
 		if data, ok := resp.Data.(map[string]interface{}); ok {
-			if uuid, ok := data["uuid"].(string); ok {
-				ctx.Set("X-User-UUID", uuid)
-			}
-			if role, ok := data["user_role"].(string); ok {
-				ctx.Set("X-User-Role", role)
+			for key, value := range h.Services.ParsTags {
+				if res, ok := data[key].(string); ok {
+					ctx.Set(value, res)
+				}
 			}
 		}
 		ctx.Next()

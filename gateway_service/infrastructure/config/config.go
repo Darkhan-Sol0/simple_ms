@@ -19,6 +19,7 @@ type Services struct {
 	SemophoreTimeout int               `env:"SEMOPHORE_TIMEOUT"`
 	RequestTimeout   int               `env:"REQUEST_TIMEOUT"`
 	Port             string            `env:"PORT"`
+	ParsTags         map[string]string `env:"PARS_TAGS" env-delim:"," env-pairs:":"`
 }
 
 var (

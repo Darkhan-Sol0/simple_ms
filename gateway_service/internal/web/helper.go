@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -14,11 +15,7 @@ func (h *Handler) proxyRequest(ctx *gin.Context, link string) (*http.Response, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	headersToCopy := []string{
-		"X-User-UUID",
-		"X-User-Role",
-	}
-	for _, header := range headersToCopy {
+	for _, header := range h.Services.ParsTags {
 		if value, ok := ctx.Get(header); ok {
 			req.Header.Add(header, value.(string))
 		}
@@ -29,21 +26,24 @@ func (h *Handler) proxyRequest(ctx *gin.Context, link string) (*http.Response, e
 	return client.Do(req)
 }
 
-func (h *Handler) proxyResponse(ctx *gin.Context, response *http.Response) {
-	h.sendMessage(ctx, response)
+func (h *Handler) proxyResponse(ctx *gin.Context, response Response) {
+	if response.Err != nil {
+		h.sendMessage(ctx, NewResult(nil, response.Status, fmt.Errorf("error: %s", response.Err)))
+	}
+	h.sendMessage(ctx, NewResult(response.Data, response.Status, nil))
 }
 
-// ToDo переработать Функцию. Она не корректна
 func (h *Handler) GetResponse(response *http.Response) (Response, error) {
 	defer response.Body.Close()
-	var resp Response
-	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
-		return Response{Status: response.StatusCode}, err
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return Response{Status: response.StatusCode}, fmt.Errorf("err: %s", err)
 	}
-	if resp.Err != nil {
-		return Response{Status: resp.Status}, fmt.Errorf("error: %s", resp.Details)
+	var res Response
+	if err := json.Unmarshal(body, &res); err != nil {
+		return Response{Status: response.StatusCode}, fmt.Errorf("err: %s", err)
 	}
-	return resp, nil
+	return res, nil
 }
 
 func (h *Handler) checkSemaphore(c *gin.Context) (bool, func()) {

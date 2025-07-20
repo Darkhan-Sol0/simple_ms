@@ -1,49 +1,45 @@
 package web
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
 type Response struct {
-	Data    interface{}
-	Err     interface{}
-	Status  int
-	Details string
+	Data   any `json:"data"`
+	Err    any `json:"error"`
+	Status int
 }
 
 type Result struct {
 	status int
-	data   interface{}
+	err    error
+	data   any
 }
 
-func NewResult(data interface{}, status int) Result {
+func NewResult(data any, status int, err error) Result {
 	return Result{
 		data:   data,
+		err:    err,
 		status: status,
 	}
 }
 
 func sendError(ctx *gin.Context, res Result) {
 	ctx.JSON(res.status, gin.H{
-		"status": res.status,
-		"error":  res.data,
+		"error": res.err.Error(),
 	})
 }
 
 func sendSucces(ctx *gin.Context, res Result) {
 	ctx.JSON(res.status, gin.H{
-		"status": res.status,
-		"data":   res.data,
+		"data": res.data,
 	})
 }
 
-func (h *Handler) sendMessage(ctx *gin.Context, response *http.Response) {
-	resp, err := h.GetResponse(response)
-	if err != nil {
-		sendError(ctx, NewResult(err.Error(), resp.Status))
+func (h *Handler) sendMessage(ctx *gin.Context, res Result) {
+	if res.err != nil {
+		sendError(ctx, res)
 		return
 	}
-	sendSucces(ctx, NewResult(resp.Data, resp.Status))
+	sendSucces(ctx, res)
 }

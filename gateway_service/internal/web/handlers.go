@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,24 +13,28 @@ func (h *Handler) CreateRequest(ctx *gin.Context) {
 	service := ctx.Param("service")
 	serviceURL, exists := h.Services.Service[service]
 	if !exists {
-		sendError(ctx, NewResult("Not Found Service", http.StatusNotFound))
+		h.sendMessage(ctx, NewResult(nil, http.StatusNotFound, fmt.Errorf("error: Not Found Service")))
 		return
 	}
 	path := strings.TrimPrefix(ctx.Param("path"), "/")
 	link, err := url.JoinPath(serviceURL, path)
 	if err != nil {
-		sendError(ctx, NewResult("Not Found", http.StatusNotFound))
+		h.sendMessage(ctx, NewResult(nil, http.StatusNotFound, fmt.Errorf("error: Not Found Service")))
 		return
 	}
 	response, err := h.proxyRequest(ctx, link)
 	if err != nil {
-		sendError(ctx, NewResult("Not Found", http.StatusNotFound))
+		h.sendMessage(ctx, NewResult(nil, http.StatusNotFound, fmt.Errorf("error: Not Found Service")))
 		return
 	}
-	defer response.Body.Close()
-	h.proxyResponse(ctx, response)
+	res, err := h.GetResponse(response)
+	if err != nil {
+		h.sendMessage(ctx, NewResult(nil, res.Status, err))
+		return
+	}
+	h.proxyResponse(ctx, res)
 }
 
 func (h *Handler) NoRouting(ctx *gin.Context) {
-	sendError(ctx, NewResult("Not Found", http.StatusNotFound))
+	h.sendMessage(ctx, NewResult(nil, http.StatusNotFound, fmt.Errorf("error: Not Found Service")))
 }

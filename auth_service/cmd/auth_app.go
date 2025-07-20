@@ -22,7 +22,6 @@ func main() {
 	handler := web.NewHandler(service.NewService(datasource.NewRepository(db)))
 	handler.RegistrationHandlers(r)
 
-	log.Println("Starting serveer on :8080")
 	if err := r.Run(":8181"); err != nil {
 		log.Fatalln("Server failed: ", err)
 	}
