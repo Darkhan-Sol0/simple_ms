@@ -20,6 +20,7 @@ type Services struct {
 	RequestTimeout   int               `env:"REQUEST_TIMEOUT"`
 	Port             string            `env:"PORT"`
 	ParsTags         map[string]string `env:"PARS_TAGS" env-delim:"," env-pairs:":"`
+	InternalTag      string            `env:"INTERNAL_TAG"`
 }
 
 var (

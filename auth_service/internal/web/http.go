@@ -17,10 +17,18 @@ func NewHandler(service service.AuthService) *Handler {
 }
 
 func (h *Handler) RegistrationHandlers(r *gin.Engine) {
-	r.POST("/sign_up", h.Registaration)
+	r.POST("/sign_up", h.Registration)
 	r.POST("/sign_in", h.Authorization)
 
-	r.POST("/check_auth", h.CheckAuthorization)
+	internal := r.Group("/internal").Use(h.Internal())
+	{
+		internal.POST("/check_auth", h.CheckAuthorization)
+	}
 
-	r.GET("/user_list", h.RoleChecker("admin"), h.GetUsersList)
+	admin := r.Group("/admin").Use(h.RoleChecker("admin"))
+	{
+		admin.GET("/user_list", h.GetUsersList)
+	}
+
+	r.NoRoute(h.NotFound)
 }

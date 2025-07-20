@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) Registaration(ctx *gin.Context) {
+func (h *Handler) Registration(ctx *gin.Context) {
 	var regUser dto.DtoRegUserFromWeb
 	if err := ctx.ShouldBindJSON(&regUser); err != nil {
 		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, fmt.Errorf("invalid request body: %s", err.Error())))
@@ -57,4 +57,8 @@ func (h *Handler) GetUsersList(ctx *gin.Context) {
 		return
 	}
 	sendMessage(ctx, NewResult(userList, http.StatusOK, nil))
+}
+
+func (h *Handler) NotFound(ctx *gin.Context) {
+	sendMessage(ctx, NewResult(nil, http.StatusNotFound, fmt.Errorf("not found")))
 }

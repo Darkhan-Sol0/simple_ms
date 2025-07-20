@@ -23,4 +23,6 @@ func (h *Handler) RegistrationHandlers(r *gin.Engine) {
 
 	r.GET("/:uuid", h.RoleChecker("user"), h.GetUser)
 
+	r.NoRoute(h.NotFound)
+
 }

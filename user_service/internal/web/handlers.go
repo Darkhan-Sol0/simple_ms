@@ -74,3 +74,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 	}
 	sendMessage(ctx, NewResult("Succes update", http.StatusOK, nil))
 }
+
+func (h *Handler) NotFound(ctx *gin.Context) {
+	sendMessage(ctx, NewResult(nil, http.StatusNotFound, fmt.Errorf("not found")))
+}
