@@ -6,8 +6,8 @@ CREATE TYPE user_role AS ENUM ('admin', 'user');
 CREATE TABLE users (
     uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     login VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(255) UNIQUE CHECK (email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$'),
-    phone VARCHAR(20) UNIQUE CHECK (phone ~* '^\+[0-9]{10,15}$'),
+    email VARCHAR(255) UNIQUE NULL CHECK (email IS NULL OR email ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$'),
+    phone VARCHAR(20) UNIQUE NULL CHECK (phone IS NULL OR phone ~* '^\+[0-9]{5,15}$'),
     password_hash TEXT NOT NULL,
     user_role user_role NOT NULL DEFAULT 'user',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -40,7 +40,7 @@ INSERT INTO users (uuid, login, email, phone, password_hash, user_role)
         'c7eba5fd-f4d8-4e4c-8c38-b1470941e2cc'::UUID, 
         'admin', 
         'admin@example.com', 
-        '+71234567899', 
+        '+71234567890', 
         '$2a$10$8weqV5yZqdMTfYSmbeJuge1bJ1d66fixocYQfYlNOFubZgHofefx2', -- 123qwe
         'admin'
         );

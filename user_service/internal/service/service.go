@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"user_service/internal/datasource"
 	"user_service/internal/domain"
 	"user_service/internal/dto"
@@ -16,6 +17,7 @@ type UserService interface {
 	CreateUser(ctx *gin.Context, user dto.DtoUuidUserFromWeb) (string, error)
 	GetUser(ctx *gin.Context, userIn dto.DtoUuidUserFromWeb) (dto.DtoUserFromDb, error)
 	UpdateUser(ctx *gin.Context, userIn dto.DtoUserToDb) error
+	GetUserList(ctx *gin.Context) ([]dto.DtoUserFromDb, error)
 }
 
 func NewService(store datasource.Storage) UserService {
@@ -56,4 +58,12 @@ func (u *userServiceImpl) UpdateUser(ctx *gin.Context, userIn dto.DtoUserToDb) e
 		return err
 	}
 	return nil
+}
+
+func (u *userServiceImpl) GetUserList(ctx *gin.Context) ([]dto.DtoUserFromDb, error) {
+	users, err := u.Storage.GetUserList(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error: %s", err)
+	}
+	return users, nil
 }

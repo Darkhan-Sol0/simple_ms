@@ -22,6 +22,7 @@ type Services struct {
 	ParsTags         map[string]string `env:"PARS_TAGS" env-delim:"," env-pairs:":"`
 	InternalTag      string            `env:"INTERNAL_TAG"`
 	Index            string            `env:"INDEX"`
+	URLTokenDecoder  string            `env:"URL_TOKEN_DECODER"`
 }
 
 var (

@@ -1,4 +1,4 @@
-NAME = auth_service
+NAME = blog_service
 
 SOURCE = cmd/auth_app.go
 

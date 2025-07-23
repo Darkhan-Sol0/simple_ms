@@ -2,7 +2,10 @@ package web
 
 import (
 	"auth_service/internal/dto"
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +22,18 @@ func (h *Handler) Registration(ctx *gin.Context) {
 		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, fmt.Errorf("invalid create user: %s", err.Error())))
 		return
 	}
-	sendMessage(ctx, NewResult(uuid, http.StatusCreated, nil))
+	jsonData, _ := json.Marshal(uuid)
+	res, err := h.proxyRequest(ctx, "http://user_service:8282/", "POST", io.NopCloser(bytes.NewBuffer(jsonData)))
+	if err != nil {
+		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, fmt.Errorf("err: %s", err.Error())))
+		return
+	}
+	data, err := h.GetResponse(res)
+	if err != nil {
+		sendMessage(ctx, NewResult(nil, http.StatusBadRequest, fmt.Errorf("err: %s", err.Error())))
+		return
+	}
+	sendMessage(ctx, NewResult(data, http.StatusCreated, nil))
 }
 
 func (h *Handler) Authorization(ctx *gin.Context) {

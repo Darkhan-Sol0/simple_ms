@@ -17,12 +17,16 @@ func NewHandler(service service.UserService) *Handler {
 }
 
 func (h *Handler) RegistrationHandlers(r *gin.Engine) {
-	r.POST("/", h.RoleChecker("user"), h.CreateUser)
-	r.GET("/", h.RoleChecker("user"), h.GetSelfUser)
-	r.PATCH("/", h.RoleChecker("user"), h.UpdateUser)
-
-	r.GET("/:uuid", h.RoleChecker("user"), h.GetUser)
-
+	internal := r.Group("/internal").Use(h.Internal())
+	{
+		internal.POST("/create", h.CreateUser)
+	}
+	user := r.Group("/").Use(h.RoleChecker("user", "admin"))
+	{
+		user.GET("/", h.GetSelfUser)
+		user.PATCH("/", h.UpdateUser)
+		user.GET("/list", h.GetUsersList)
+		user.GET("/:uuid", h.GetUser)
+	}
 	r.NoRoute(h.NotFound)
-
 }

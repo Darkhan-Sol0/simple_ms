@@ -6,12 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) RoleChecker(role string) gin.HandlerFunc {
+func (h *Handler) RoleChecker(roles ...string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		roleHeader := ctx.Request.Header.Get("X-User-Role")
-		if roleHeader != role {
-			ctx.AbortWithStatus(http.StatusUnauthorized)
-			return
+		for _, role := range roles {
+			if roleHeader != role {
+				ctx.AbortWithStatus(http.StatusUnauthorized)
+				return
+			}
 		}
 		ctx.Next()
 	}

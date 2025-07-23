@@ -15,7 +15,7 @@ type authServiceImpl struct {
 }
 
 type AuthService interface {
-	CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFromWeb) (string, error)
+	CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFromWeb) (dto.DtoUserUUIDToWeb, error)
 	AuthUser(ctx *gin.Context, userAuth dto.DtoAuthUser) (string, error)
 	AuthUserByLogin(ctx *gin.Context, userAuth dto.DtoAuthUserLogin) (string, error)
 	TokenChecker(ctx *gin.Context, token string) (dto.DtoUserFromTokenToWeb, error)
@@ -28,7 +28,7 @@ func NewService(store datasource.Storage) AuthService {
 	}
 }
 
-func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFromWeb) (string, error) {
+func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFromWeb) (dto.DtoUserUUIDToWeb, error) {
 	user := domain.NewUser()
 	user.SetLogin(userReg.Login)
 	user.SetEmail(userReg.Email)
@@ -36,19 +36,19 @@ func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFro
 	user.SetPassword(userReg.Password)
 
 	if err := user.ValidateEmail(); err != nil {
-		return "", err
+		return dto.DtoUserUUIDToWeb{}, err
 	}
 	if err := user.ValidateLogin(); err != nil {
-		return "", err
+		return dto.DtoUserUUIDToWeb{}, err
 	}
 	if err := user.ValidatePhone(); err != nil {
-		return "", err
+		return dto.DtoUserUUIDToWeb{}, err
 	}
 	if err := user.ValidatePassword(); err != nil {
-		return "", err
+		return dto.DtoUserUUIDToWeb{}, err
 	}
 	if err := user.HashingPassword(); err != nil {
-		return "", err
+		return dto.DtoUserUUIDToWeb{}, err
 	}
 
 	userOut := dto.DtoRegUserToDb{
@@ -61,7 +61,7 @@ func (a *authServiceImpl) CreateUser(ctx *gin.Context, userReg dto.DtoRegUserFro
 
 	uuid, err := a.Storage.CreateUser(ctx, userOut)
 	if err != nil {
-		return "", err
+		return dto.DtoUserUUIDToWeb{}, err
 	}
 
 	return uuid, nil

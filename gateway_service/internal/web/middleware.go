@@ -1,14 +1,11 @@
 package web
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,39 +27,21 @@ func (h *Handler) Timeout() gin.HandlerFunc {
 
 func (h *Handler) DecodeToken() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		tokenAuth := ctx.GetHeader("Authorization")
-		if tokenAuth == "" {
-			ctx.Next()
-			return
-		}
-		parts := strings.Split(tokenAuth, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			ctx.Next()
-			return
-		}
-		token := parts[1]
-		jsonData, _ := json.Marshal(map[string]string{"token": token})
-		link := fmt.Sprintf("%s/internal/check_auth", h.Services.Service["auth"])
-		req, _ := http.NewRequest("POST", link, bytes.NewBuffer(jsonData))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Internal-Secret", h.Services.InternalTag)
-		cl := &http.Client{Timeout: time.Duration(h.Services.SemophoreTimeout) * time.Second}
-		res, err := cl.Do(req)
+		token, err := extractToken(ctx)
+		log.Println(token)
 		if err != nil {
 			ctx.Next()
 			return
 		}
-		defer res.Body.Close()
-		resp, err := h.GetResponse(res)
+		data, err := h.decodeToken(token)
+		log.Println(data)
 		if err != nil {
 			ctx.Next()
 			return
 		}
-		if data, ok := resp.Data.(map[string]interface{}); ok {
-			for key, value := range h.Services.ParsTags {
-				if res, ok := data[key].(string); ok {
-					ctx.Set(value, res)
-				}
+		for key, value := range h.Services.ParsTags {
+			if res, ok := data[key].(string); ok {
+				ctx.Set(value, res)
 			}
 		}
 		ctx.Next()
@@ -85,7 +64,6 @@ func (h *Handler) CheckService() gin.HandlerFunc {
 			ctx.AbortWithStatus(http.StatusNotFound)
 			return
 		}
-		log.Println(link)
 		ctx.Set("link", link)
 		ctx.Next()
 	}

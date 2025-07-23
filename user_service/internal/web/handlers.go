@@ -10,7 +10,7 @@ import (
 
 func (h *Handler) CreateUser(ctx *gin.Context) {
 	var user dto.DtoUuidUserFromWeb
-	err := ctx.ShouldBindJSON(&user.UUID)
+	err := ctx.ShouldBindJSON(&user)
 	if err != nil {
 		sendMessage(ctx, NewResult("invalid request body", http.StatusBadRequest, err))
 		return
@@ -51,7 +51,12 @@ func (h *Handler) GetSelfUser(ctx *gin.Context) {
 }
 
 func (h *Handler) GetUsersList(ctx *gin.Context) {
-
+	users, err := h.Service.GetUserList(ctx)
+	if err != nil {
+		sendMessage(ctx, NewResult("invalid request body", http.StatusInternalServerError, err))
+		return
+	}
+	sendMessage(ctx, NewResult(users, http.StatusOK, nil))
 }
 
 func (h *Handler) UpdateUser(ctx *gin.Context) {

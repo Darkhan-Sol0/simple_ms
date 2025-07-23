@@ -1,7 +1,6 @@
 package datasource
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -14,7 +13,8 @@ import (
 type Storage interface {
 	CreateUser(ctx *gin.Context, user dto.DtoUserToDb) (string, error)
 	GetUserByUUID(ctx *gin.Context, uuid string) (dto.DtoUserFromDb, error)
-	UpdateUser(ctx context.Context, user dto.DtoUserToDb) error
+	UpdateUser(ctx *gin.Context, user dto.DtoUserToDb) error
+	GetUserList(ctx *gin.Context) ([]dto.DtoUserFromDb, error)
 }
 
 type Repository struct {
@@ -59,7 +59,7 @@ func (r *Repository) GetUserByUUID(ctx *gin.Context, uuid string) (dto.DtoUserFr
 	return user, nil
 }
 
-func (r *Repository) UpdateUser(ctx context.Context, user dto.DtoUserToDb) error {
+func (r *Repository) UpdateUser(ctx *gin.Context, user dto.DtoUserToDb) error {
 	var setClauses []string
 	var args []interface{}
 	argID := 1
@@ -107,4 +107,30 @@ func (r *Repository) UpdateUser(ctx context.Context, user dto.DtoUserToDb) error
 		return fmt.Errorf("user with uuid %s not found", user.UUID)
 	}
 	return nil
+}
+
+func (r *Repository) GetUserList(ctx *gin.Context) ([]dto.DtoUserFromDb, error) {
+	guery := `SELECT uuid, name, description, born_day, city, links
+						FROM users`
+	rows, err := r.Client.Query(ctx, guery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query users: %w", err)
+	}
+	defer rows.Close()
+	var users []dto.DtoUserFromDb
+	for rows.Next() {
+		var user dto.DtoUserFromDb
+		var linksJSON []byte
+		if err := rows.Scan(&user.UUID, &user.Name, &user.Description, &user.BornDay, &user.City, &linksJSON); err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		if err := json.Unmarshal(linksJSON, &user.Links); err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		users = append(users, user)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+	return users, nil
 }

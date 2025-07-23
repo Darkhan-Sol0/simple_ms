@@ -9,7 +9,7 @@ import (
 )
 
 type Storage interface {
-	CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (string, error)
+	CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (dto.DtoUserUUIDToWeb, error)
 	GetUserByLogin(ctx *gin.Context, login string) (dto.DtoUserFromDb, error)
 	GetUserByEmail(ctx *gin.Context, email string) (dto.DtoUserFromDb, error)
 	GetUserByPhone(ctx *gin.Context, phone string) (dto.DtoUserFromDb, error)
@@ -26,14 +26,14 @@ func NewRepository(client database.Client) Storage {
 	}
 }
 
-func (r *Repository) CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (string, error) {
+func (r *Repository) CreateUser(ctx *gin.Context, user dto.DtoRegUserToDb) (dto.DtoUserUUIDToWeb, error) {
 	query := `INSERT INTO users (
 		login, email, phone, password_hash,	user_role
 		) VALUES ($1, $2, $3, $4, $5) RETURNING uuid`
-	var uuid string
-	err := r.Client.QueryRow(ctx, query, user.Login, user.Email, user.Phone, user.PasswordHash, user.Role).Scan(&uuid)
+	var uuid dto.DtoUserUUIDToWeb
+	err := r.Client.QueryRow(ctx, query, user.Login, user.Email, user.Phone, user.PasswordHash, user.Role).Scan(&uuid.UUID)
 	if err != nil {
-		return "", fmt.Errorf("failed to create user: %w", err)
+		return dto.DtoUserUUIDToWeb{}, fmt.Errorf("failed to create user: %w", err)
 	}
 	return uuid, nil
 }

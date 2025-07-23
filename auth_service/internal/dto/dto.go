@@ -71,3 +71,7 @@ type DtoUserFromTokenToWeb struct {
 	UUID string `json:"user_uuid" db:"user_uuid"`
 	Role string `json:"user_role" db:"user_role"`
 }
+
+type DtoUserUUIDToWeb struct {
+	UUID string `json:"uuid" db:"uuid"`
+}
