@@ -1,4 +1,4 @@
-NAME = blog_service
+NAME = chat_service
 
 SOURCE = cmd/auth_app.go
 
