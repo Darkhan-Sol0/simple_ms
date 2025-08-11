@@ -1,69 +1,33 @@
 package service
 
-import (
-	"fmt"
-	"user_service/internal/datasource"
-	"user_service/internal/domain"
-	"user_service/internal/dto"
+type (
+	Storage interface {
+		AddUser() (string, error)
+		GetListUser() (map[string]string, error)
+	}
 
-	"github.com/gin-gonic/gin"
+	ServiceYmpl struct {
+		Storage Storage
+	}
+
+	Service interface {
+		Hello() string
+		GetList() map[string]string
+	}
 )
 
-type userServiceImpl struct {
-	Storage datasource.Storage
-}
-
-type UserService interface {
-	CreateUser(ctx *gin.Context, user dto.DtoUuidUserFromWeb) (string, error)
-	GetUser(ctx *gin.Context, userIn dto.DtoUuidUserFromWeb) (dto.DtoUserFromDb, error)
-	UpdateUser(ctx *gin.Context, userIn dto.DtoUserToDb) error
-	GetUserList(ctx *gin.Context) ([]dto.DtoUserFromDb, error)
-}
-
-func NewService(store datasource.Storage) UserService {
-	return &userServiceImpl{
-		Storage: store,
+func NewService(storage Storage) Service {
+	return &ServiceYmpl{
+		Storage: storage,
 	}
 }
 
-func (u *userServiceImpl) CreateUser(ctx *gin.Context, userIn dto.DtoUuidUserFromWeb) (string, error) {
-	user := domain.NewUser()
-	user.SetUUID(userIn.UUID)
-	userOut := dto.DtoUserToDb{
-		UUID:        user.GetUUID(),
-		Name:        user.GetName(),
-		Description: user.GetDescription(),
-		BornDay:     user.GetBornDay(),
-		City:        user.GetCity(),
-		Links:       user.GetLinks(),
-	}
-	res, err := u.Storage.CreateUser(ctx, userOut)
-	if err != nil {
-		return "", err
-	}
-	return res, nil
+func (s *ServiceYmpl) Hello() string {
+	a, _ := s.Storage.AddUser()
+	return a
 }
 
-func (u *userServiceImpl) GetUser(ctx *gin.Context, userIn dto.DtoUuidUserFromWeb) (dto.DtoUserFromDb, error) {
-	res, err := u.Storage.GetUserByUUID(ctx, userIn.UUID)
-	if err != nil {
-		return dto.DtoUserFromDb{}, err
-	}
-	return res, nil
-}
-
-func (u *userServiceImpl) UpdateUser(ctx *gin.Context, userIn dto.DtoUserToDb) error {
-	err := u.Storage.UpdateUser(ctx, userIn)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (u *userServiceImpl) GetUserList(ctx *gin.Context) ([]dto.DtoUserFromDb, error) {
-	users, err := u.Storage.GetUserList(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error: %s", err)
-	}
-	return users, nil
+func (s *ServiceYmpl) GetList() map[string]string {
+	a, _ := s.Storage.GetListUser()
+	return a
 }
