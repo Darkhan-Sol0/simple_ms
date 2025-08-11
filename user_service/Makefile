@@ -13,7 +13,7 @@ PACKAGE =\
 PACKAGE_INST =\
 					-tool github.com/a-h/templ/cmd/templ@latest\
 
-.PHONY: all build run clean init get
+.PHONY: all build run clean init get get_install templ
 
 all: clean build run
 
@@ -34,3 +34,6 @@ get:
 
 get_install:
 	go get -tool $(PACKAGE_INST)
+
+templ:
+	go tool templ generate

@@ -1,12 +1,12 @@
 server_http:
-  address: "localhost:8080"
+  address: "0.0.0.0:8080"
   session_timeout: 4s
   idle_timeout: 60s
 
 database:
   database_env: postgres
-  port: :8080
-  host: db
-  database_name: postgres
-  username: postgres
-  password: postgres
+  port: 5432
+  host: pgdb_user
+  database_name: db
+  username: user
+  password: password

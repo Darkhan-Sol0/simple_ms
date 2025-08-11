@@ -26,8 +26,8 @@ type (
 
 	DatabasePG struct {
 		Env      string `yaml:"database_env"`
-		Host     string `yaml:"port"`
-		Port     string `yaml:"host"`
+		Host     string `yaml:"host"`
+		Port     string `yaml:"port"`
 		Database string `yaml:"database_name"`
 		Username string `yaml:"username"`
 		Password string `yaml:"password"`
