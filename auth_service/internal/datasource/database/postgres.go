@@ -32,5 +32,4 @@ func ConnectDB(ctx context.Context, cfg Config) (pool *pgxpool.Pool, err error) 
 		return nil, fmt.Errorf("database ping failed: %v", err)
 	}
 	return pool, nil
-	// return nil, nil
 }

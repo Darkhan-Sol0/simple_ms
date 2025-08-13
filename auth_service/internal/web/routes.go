@@ -1,17 +1,14 @@
 package web
 
 import (
+	"auth_service/internal/service"
+
 	"github.com/labstack/echo/v4"
 )
 
 type (
-	Service interface {
-		Hello() string
-		GetList() map[string]string
-	}
-
 	routingConfig struct {
-		service Service
+		service service.Service
 	}
 
 	Routing interface {
@@ -19,13 +16,14 @@ type (
 	}
 )
 
-func NewRouting(service Service) Routing {
+func NewRouting(service service.Service) Routing {
 	return &routingConfig{
 		service: service,
 	}
 }
 
 func (r *routingConfig) RegisterRoutes(e *echo.Echo) {
-	e.GET("/", r.indexHandler)
-	e.GET("/a", r.listHandler)
+	e.POST("/reg", r.PostNewUser)
+	e.GET("/user_list", r.GetUsersList)
+	e.GET("/user", r.GetUserByUuid)
 }

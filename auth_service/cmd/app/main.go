@@ -7,11 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"myApp/internal/config"
-	"myApp/internal/datasource/database"
-	"myApp/internal/datasource/repository"
-	"myApp/internal/service"
-	"myApp/internal/web"
+	"auth_service/internal/config"
+	"auth_service/internal/datasource/database"
+	"auth_service/internal/datasource/repository"
+	"auth_service/internal/service"
+	"auth_service/internal/web"
 
 	"github.com/labstack/echo/v4"
 )

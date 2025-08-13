@@ -7,8 +7,10 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: db
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5432:5432"
+    networks:
+      - backend
     volumes:
       - pgdb_user_data:/var/lib/postgresql/data
     healthcheck:
@@ -25,9 +27,32 @@ services:
     restart: on-failure
     build:
       context: .
-      dockerfile: user_service/Dockerfile
-    ports:
-      - "8080:8080"
+      dockerfile: docker/auth/Dockerfile
+    # ports:
+    #   - "8080:8080"
+    networks:
+      - backend
+      - frontend
+  
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports: 
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - app
+    networks:
+      - frontend
+    restart: unless-stopped
 
 volumes:
   pgdb_user_data:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge

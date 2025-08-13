@@ -9,7 +9,7 @@ clean:
 	docker rmi $(IMAGES)
 
 up:
-	docker compos up
+	docker compose up
 
 down:
-	docker compos down
+	docker compose down
