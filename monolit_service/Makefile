@@ -42,10 +42,10 @@ templ_install:
 	go get -tool $(PACKAGE_TEMPL)
 
 goose_up:
-	go tool goose -dir migrations postgres "postgresql://user:password@0.0.0.0:5432/db?sslmode=disable" up
+	~/go/bin/goose -dir migrations postgres "postgresql://user:password@pgdb_user:5432/db?sslmode=disable" up
 
 goose_down:
-	go tool goose -dir migrations postgres "postgresql://user:password@0.0.0.0:5432/db?sslmode=disable" down
+	~/go/bin/goose -dir migrations postgres "postgresql://user:password@pgdb_user:5432/db?sslmode=disable" down
 
 goose_install:
-	go get -tool $(PACKAGE_GOOSE)
+	go install $(PACKAGE_GOOSE)

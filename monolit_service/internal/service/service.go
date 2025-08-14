@@ -29,14 +29,22 @@ func NewService(storage repository.Storage) Service {
 
 func (s *ServiceYmpl) AddUser(ctx echo.Context, user dto.RegUserFromWeb) error {
 	userDomain := domain.NewUser()
-	userDomain.SetPassword(user.Password)
+	if err := userDomain.SetLogin(user.Login); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	if err := userDomain.SetEmail(user.Email); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	if err := userDomain.SetPassword(user.Password); err != nil {
+		return fmt.Errorf("%w", err)
+	}
 	userOut := dto.RegUserToDb{
 		Login:    user.Login,
 		Password: userDomain.GetPassword(),
+		Email:    userDomain.GetEmail(),
 	}
-	err := s.Storage.CreateUser(ctx, userOut)
-	if err != nil {
-		return fmt.Errorf("")
+	if err := s.Storage.CreateUser(ctx, userOut); err != nil {
+		return fmt.Errorf("%w", err)
 	}
 	return nil
 }

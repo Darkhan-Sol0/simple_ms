@@ -23,7 +23,8 @@ func NewRouting(service service.Service) Routing {
 }
 
 func (r *routingConfig) RegisterRoutes(e *echo.Echo) {
-	e.POST("/reg", r.PostNewUser)
+	e.POST("/auth/sign_up", r.PostNewUser)
+	e.POST("/auth/sign_in", r.AuthUser)
 	e.GET("/user_list", r.GetUsersList)
 	e.GET("/user", r.GetUserByUuid)
 }

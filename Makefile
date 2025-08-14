@@ -1,6 +1,6 @@
-IMAGES = simple_ms-app
+IMAGES = simple_ms-monolit_app
 
-MIRROR = postgres app
+MIRROR = postgres monolit_app nginx
 
 all:
 

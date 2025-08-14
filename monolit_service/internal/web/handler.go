@@ -2,6 +2,7 @@ package web
 
 import (
 	"auth_service/internal/dto"
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -15,11 +16,15 @@ func (r *routingConfig) PostNewUser(ctx echo.Context) error {
 	var user dto.RegUserFromWeb
 	err := ctx.Bind(&user)
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, Responce{Data: "error"})
+		return ctx.JSON(http.StatusBadRequest, Responce{Data: fmt.Errorf("%w", err)})
 	}
 	if err := r.service.AddUser(ctx, user); err != nil {
-		return ctx.JSON(http.StatusBadRequest, Responce{Data: "error"})
+		return ctx.JSON(http.StatusBadRequest, Responce{Data: fmt.Errorf("%w", err)})
 	}
+	return ctx.JSON(http.StatusOK, Responce{Data: "OK"})
+}
+
+func (r *routingConfig) AuthUser(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, Responce{Data: "OK"})
 }
 

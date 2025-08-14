@@ -38,24 +38,25 @@ func NewDatabase(client Client) Storage {
 
 func (r *Repository) CreateUser(ctx echo.Context, user dto.RegUserToDb) error {
 	query := `
-	INSERT INTO users (login, password) 
-	VALUES ($1, $2)`
+	INSERT INTO users (login, email, password) 
+	VALUES ($1, $2, $3)`
 
 	_, err := r.Client.Exec(
 		ctx.Request().Context(),
 		query,
 		user.Login,
+		user.Email,
 		user.Password,
 	)
 	if err != nil {
-		return fmt.Errorf("")
+		return fmt.Errorf("%w", err)
 	}
 	return nil
 }
 
 func (r *Repository) GetUsers(ctx echo.Context) ([]dto.GetUserFromDb, error) {
 	query := `
-	SELECT uuid, login
+	SELECT uuid, login, email
 	FROM users`
 
 	rows, err := r.Client.Query(
@@ -63,15 +64,15 @@ func (r *Repository) GetUsers(ctx echo.Context) ([]dto.GetUserFromDb, error) {
 		query,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("%w", err)
 	}
 	defer rows.Close()
 	var users []dto.GetUserFromDb
 
 	for rows.Next() {
 		var user dto.GetUserFromDb
-		if err := rows.Scan(&user.UUID, &user.Login); err != nil {
-			return nil, fmt.Errorf("")
+		if err := rows.Scan(&user.UUID, &user.Login, &user.Email); err != nil {
+			return nil, fmt.Errorf("%w", err)
 		}
 		users = append(users, user)
 	}
@@ -83,13 +84,13 @@ func (r *Repository) GetUsers(ctx echo.Context) ([]dto.GetUserFromDb, error) {
 
 func (r *Repository) GetUserByUuid(ctx echo.Context, userUuid dto.GetUserUUIDFromWeb) (dto.GetUserFromDb, error) {
 	query := `
-	SELECT uuid, login
+	SELECT uuid, login, email
 	FROM users
 	WHERE uuid = $1`
 
 	row := r.Client.QueryRow(ctx.Request().Context(), query, userUuid.UUID)
 	var user dto.GetUserFromDb
-	if err := row.Scan(&user.UUID, &user.Login); err != nil {
+	if err := row.Scan(&user.UUID, &user.Login, &user.Email); err != nil {
 		return dto.GetUserFromDb{}, fmt.Errorf("error db")
 	}
 	return user, nil
